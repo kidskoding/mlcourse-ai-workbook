@@ -2,11 +2,20 @@
 
 workbook for [mlcourse.ai](https://mlcourse.ai/book/index.html) - a free, open, and self-paced Machine Learning course by OpenDataScience that strikes the perfect balance between theory and practice
 
-## Running locally
+**Browse it live: [kidskoding.github.io/mlcourse-ai-workbook](https://kidskoding.github.io/mlcourse-ai-workbook/)** — every notebook runs Python in your browser (WebAssembly), so you can read the notes and experiment with the code right on the page.
 
-Notebooks are [marimo](https://marimo.io) `.py` files. The only prerequisite is [uv](https://docs.astral.sh/uv/) — marimo and all dependencies come from the lockfile.
+> [!NOTE]
+> The live site is read-only: edits run in your browser tab but are gone on refresh — nothing saves back. To actually work through the assignments, fork this repo and run it locally (below). Your answers save to the `.py` files, and commits are your progress.
+
+## Doing the assignments
+
+Full setup and workflow details live in [INSTRUCTIONS.md](INSTRUCTIONS.md); the short version:
+
+1. Fork this repo (or clone it directly), then:
 
 ```sh
+git clone https://github.com/<your-username>/mlcourse-ai-workbook
+cd mlcourse-ai-workbook
 uv sync
 uv run marimo edit --watch .
 ```
