@@ -1,3 +1,15 @@
+# /// script
+# requires-python = ">=3.12"
+# dependencies = [
+#     "marimo",
+#     "matplotlib",
+#     "numpy",
+#     "pandas",
+#     "requests",
+#     "scikit-learn",
+# ]
+# ///
+
 import marimo
 
 __generated_with = "0.23.14"

@@ -26,7 +26,10 @@ def note_label(name: str) -> str:
 
 rows = []
 for topic_dir, pages in topics.items():
-    num = re.match(r"topic(\d+)", topic_dir).group(1)
+    m = re.match(r"topic(\d+)", topic_dir)
+    if m is None:  # non-topic dir slipped into _site; skip it
+        continue
+    num = m.group(1)
     title = topic_dir.split("-", 1)[1].replace("-", " ").title()
     warn = ""
     if topic_dir[:7] in NON_WASM:

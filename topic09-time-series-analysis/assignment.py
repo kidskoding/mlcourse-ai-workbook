@@ -1,3 +1,15 @@
+# /// script
+# requires-python = ">=3.12"
+# dependencies = [
+#     "marimo",
+#     "matplotlib",
+#     "pandas",
+#     "plotly",
+#     "scipy",
+#     "statsmodels",
+# ]
+# ///
+
 import marimo
 
 __generated_with = "0.23.14"
@@ -35,35 +47,20 @@ def _():
     import warnings
 
     warnings.filterwarnings("ignore")
-    import numpy as np
     import pandas as pd
-    import requests
-    from plotly import __version__
     from plotly import graph_objs as go
-    from plotly.offline import download_plotlyjs, init_notebook_mode, iplot, plot
-    from IPython.display import display, IFrame
 
-    print(__version__)  # need 1.9.0 or greater
-    init_notebook_mode(connected=True)
-    return IFrame, display, go, pd, plot
+    return go, pd
 
 
 @app.cell
-def _(IFrame, display, go, plot):
+def _(go):
     def plotly_df(df, title="", width=800, height=500):
         """Visualize all the dataframe columns as line plots."""
         common_kw = dict(x=df.index, mode="lines")
         data = [go.Scatter(y=df[c], name=c, **common_kw) for c in df.columns]
-        layout = dict(title=title)
-        fig = dict(data=data, layout=layout)
-
-        # in a Jupyter Notebook, the following should work
-        # iplot(fig, show_link=False)
-
-        # in a Jupyter Book, we save a plot offline and then render it with IFrame
-        plot_path = f"../../_static/plotly_htmls/{title}.html".replace(" ", "_")
-        plot(fig, filename=plot_path, show_link=False, auto_open=False)
-        display(IFrame(plot_path, width=width, height=height))
+        fig = go.Figure(data=data, layout=dict(title=title, width=width, height=height))
+        return fig  # marimo renders plotly figures natively
 
     return (plotly_df,)
 
