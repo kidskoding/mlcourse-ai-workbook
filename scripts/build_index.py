@@ -15,6 +15,15 @@ for nb in sorted(SITE.glob("topic*/**/index.html")):
     topic_dir = rel.parts[0]
     topics.setdefault(topic_dir, []).append(rel)
 
+
+def note_label(name: str) -> str:
+    """notes -> 'notes'; notes-part2-logit-likelihood-learning -> 'part 2: logit likelihood learning'"""
+    m = re.match(r"notes-part(\d+)-(.+)", name)
+    if m:
+        return f"part {m.group(1)}: {m.group(2).replace('-', ' ')}"
+    return "notes"
+
+
 rows = []
 for topic_dir, pages in topics.items():
     num = re.match(r"topic(\d+)", topic_dir).group(1)
@@ -24,12 +33,19 @@ for topic_dir, pages in topics.items():
         warn = (
             f" <small>(uses {NON_WASM[topic_dir[:7]]} — may not run in-browser)</small>"
         )
-    links = " · ".join(
-        f'<a href="{p}/">{html.escape(p.parts[-1].replace("-", " "))}</a>'
-        for p in pages
-    )
+    notes = [p for p in pages if p.parts[-1].startswith("notes")]
+    assignments = [p for p in pages if p.parts[-1] == "assignment"]
+    subs = []
+    if notes:
+        links = ", ".join(
+            f'<a href="{p}/">{html.escape(note_label(p.parts[-1]))}</a>' for p in notes
+        )
+        subs.append(f"<li>notes: {links}</li>")
+    for p in assignments:
+        subs.append(f'<li><a href="{p}/">assignment</a></li>')
     rows.append(
-        f"<li><strong>Topic {int(num)}: {html.escape(title)}</strong>{warn}<br>{links}</li>"
+        f"<li><strong>Topic {int(num)}: {html.escape(title)}</strong>{warn}"
+        f"<ul>{''.join(subs)}</ul></li>"
     )
 
 SITE.joinpath("index.html").write_text(f"""<!doctype html>
