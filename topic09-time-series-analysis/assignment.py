@@ -58,11 +58,11 @@ def _(IFrame, display, go, plot):
         fig = dict(data=data, layout=layout)
 
         # in a Jupyter Notebook, the following should work
-        #iplot(fig, show_link=False)
+        # iplot(fig, show_link=False)
 
         # in a Jupyter Book, we save a plot offline and then render it with IFrame
         plot_path = f"../../_static/plotly_htmls/{title}.html".replace(" ", "_")
-        plot(fig, filename=plot_path, show_link=False, auto_open=False);
+        plot(fig, filename=plot_path, show_link=False, auto_open=False)
         display(IFrame(plot_path, width=width, height=height))
 
     return (plotly_df,)
@@ -130,8 +130,8 @@ def _():
 @app.cell
 def _(df):
     predictions = 30
-    df_1 = df[['date', 'count']]
-    df_1.columns = ['ds', 'y']
+    df_1 = df[["date", "count"]]
+    df_1.columns = ["ds", "y"]
     df_1.tail()
     return
 

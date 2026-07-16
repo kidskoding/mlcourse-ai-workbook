@@ -243,7 +243,10 @@ def _(np, pd, plt):
 
     print("Feature ranking:")
     for f in range(num_to_plot):
-        print("%d. %s %f" % (f + 1, features["f" + str(feature_indices[f])], importances[indices[f]]))
+        print(
+            "%d. %s %f"
+            % (f + 1, features["f" + str(feature_indices[f])], importances[indices[f]])
+        )
 
     plt.figure(figsize=(15, 5))
     plt.title("Feature Importance")

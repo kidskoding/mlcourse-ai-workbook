@@ -110,7 +110,6 @@ def _(np):
         r2_score,
     )
 
-
     def mean_absolute_percentage_error(y_true, y_pred):
         return np.mean(np.abs((y_true - y_pred) / y_true)) * 100
 
@@ -141,7 +140,6 @@ def _(ads, np):
     def moving_average(series, n):
         """Average of the last n observations."""
         return np.average(series[-n:])
-
 
     moving_average(ads, 24)  # forecast for the next hour from the past day
     return
@@ -241,7 +239,9 @@ def _(mo):
 
 @app.cell
 def _(currency, plotMovingAverage):
-    plotMovingAverage(currency, 7, plot_intervals=True, plot_anomalies=True)  # weekly smoothing
+    plotMovingAverage(
+        currency, 7, plot_intervals=True, plot_anomalies=True
+    )  # weekly smoothing
     return
 
 
@@ -267,6 +267,7 @@ def _(ads):
         for n in range(len(weights)):
             result = result + series.iloc[-n - 1] * weights[n]
         return float(result)
+
     weighted_average(ads.Ads, [0.6, 0.3, 0.1])
     return
 
@@ -296,18 +297,18 @@ def _(ads, currency, plt):
             result.append(alpha * series.iloc[n] + (1 - alpha) * result[n - 1])
         return result
 
-
     def plotExponentialSmoothing(series, alphas):
         with plt.style.context("bmh"):
             plt.figure(figsize=(15, 7))
             for alpha in alphas:
-                plt.plot(exponential_smoothing(series, alpha), label="Alpha {}".format(alpha))
+                plt.plot(
+                    exponential_smoothing(series, alpha), label="Alpha {}".format(alpha)
+                )
             plt.plot(series.values, "c", label="Actual")
             plt.legend(loc="best")
             plt.axis("tight")
             plt.title("Exponential Smoothing")
             plt.grid(True)
-
 
     plotExponentialSmoothing(ads.Ads, [0.3, 0.05])
     plotExponentialSmoothing(currency.GEMS_GEMS_SPENT, [0.3, 0.05])
@@ -347,7 +348,6 @@ def _(ads, currency, plt):
             result.append(level + trend)
         return result
 
-
     def plotDoubleExponentialSmoothing(series, alphas, betas):
         with plt.style.context("bmh"):
             plt.figure(figsize=(20, 8))
@@ -362,7 +362,6 @@ def _(ads, currency, plt):
             plt.axis("tight")
             plt.title("Double Exponential Smoothing")
             plt.grid(True)
-
 
     plotDoubleExponentialSmoothing(ads.Ads, alphas=[0.9, 0.02], betas=[0.9, 0.02])
     plotDoubleExponentialSmoothing(
@@ -403,8 +402,12 @@ def _(np):
         scaling_factor  - width of the Brutlag confidence interval (usually 2 to 3)
         """
 
-        def __init__(self, series, slen, alpha, beta, gamma, n_preds, scaling_factor=1.96):
-            self.series = np.asarray(series, dtype=float)  # positional indexing throughout, and the CV loop hands us a numpy array
+        def __init__(
+            self, series, slen, alpha, beta, gamma, n_preds, scaling_factor=1.96
+        ):
+            self.series = np.asarray(
+                series, dtype=float
+            )  # positional indexing throughout, and the CV loop hands us a numpy array
             self.slen = slen  # anyway -> normalize once here instead of .iloc-ing at every call site
             self.alpha = alpha
             self.beta = beta
@@ -415,7 +418,10 @@ def _(np):
         def initial_trend(self):
             total = 0.0
             for i in range(self.slen):
-                total = total + float(self.series[i + self.slen] - self.series[i]) / self.slen
+                total = (
+                    total
+                    + float(self.series[i + self.slen] - self.series[i]) / self.slen
+                )
             return total / self.slen
 
         def initial_seasonal_components(self):
@@ -423,11 +429,16 @@ def _(np):
             season_averages = []
             n_seasons = int(len(self.series) / self.slen)
             for j in range(n_seasons):
-                season_averages.append(sum(self.series[self.slen * j:self.slen * j + self.slen]) / float(self.slen))
+                season_averages.append(
+                    sum(self.series[self.slen * j : self.slen * j + self.slen])
+                    / float(self.slen)
+                )
             for i in range(self.slen):
                 sum_of_vals_over_avg = 0.0
                 for j in range(n_seasons):
-                    sum_of_vals_over_avg = sum_of_vals_over_avg + (self.series[self.slen * j + i] - season_averages[j])
+                    sum_of_vals_over_avg = sum_of_vals_over_avg + (
+                        self.series[self.slen * j + i] - season_averages[j]
+                    )
                 seasonals[i] = sum_of_vals_over_avg / n_seasons
             return seasonals
 
@@ -449,8 +460,14 @@ def _(np):
                     self.Trend.append(trend)
                     self.Season.append(seasonals[i % self.slen])
                     self.PredictedDeviation.append(0)  # components initialization
-                    self.UpperBond.append(self.result[0] + self.scaling_factor * self.PredictedDeviation[0])
-                    self.LowerBond.append(self.result[0] - self.scaling_factor * self.PredictedDeviation[0])
+                    self.UpperBond.append(
+                        self.result[0]
+                        + self.scaling_factor * self.PredictedDeviation[0]
+                    )
+                    self.LowerBond.append(
+                        self.result[0]
+                        - self.scaling_factor * self.PredictedDeviation[0]
+                    )
                     continue
                 if i >= len(self.series):
                     m = i - len(self.series) + 1
@@ -458,16 +475,32 @@ def _(np):
                     self.PredictedDeviation.append(self.PredictedDeviation[-1] * 1.01)
                 else:
                     val = self.series[i]
-                    last_smooth, smooth = (smooth, self.alpha * (val - seasonals[i % self.slen]) + (1 - self.alpha) * (smooth + trend))
+                    last_smooth, smooth = (
+                        smooth,
+                        self.alpha * (val - seasonals[i % self.slen])
+                        + (1 - self.alpha) * (smooth + trend),
+                    )
                     trend = self.beta * (smooth - last_smooth) + (1 - self.beta) * trend
-                    seasonals[i % self.slen] = self.gamma * (val - smooth) + (1 - self.gamma) * seasonals[i % self.slen]
+                    seasonals[i % self.slen] = (
+                        self.gamma * (val - smooth)
+                        + (1 - self.gamma) * seasonals[i % self.slen]
+                    )
                     self.result.append(smooth + trend + seasonals[i % self.slen])
-                    self.PredictedDeviation.append(self.gamma * np.abs(self.series[i] - self.result[i]) + (1 - self.gamma) * self.PredictedDeviation[-1])
-                self.UpperBond.append(self.result[-1] + self.scaling_factor * self.PredictedDeviation[-1])
-                self.LowerBond.append(self.result[-1] - self.scaling_factor * self.PredictedDeviation[-1])  # predicting
+                    self.PredictedDeviation.append(
+                        self.gamma * np.abs(self.series[i] - self.result[i])
+                        + (1 - self.gamma) * self.PredictedDeviation[-1]
+                    )
+                self.UpperBond.append(
+                    self.result[-1] + self.scaling_factor * self.PredictedDeviation[-1]
+                )
+                self.LowerBond.append(
+                    self.result[-1] - self.scaling_factor * self.PredictedDeviation[-1]
+                )  # predicting
                 self.Smooth.append(smooth)
                 self.Trend.append(trend)
-                self.Season.append(seasonals[i % self.slen])  # uncertainty grows on each forecast step  # Brutlag's predicted deviation
+                self.Season.append(
+                    seasonals[i % self.slen]
+                )  # uncertainty grows on each forecast step  # Brutlag's predicted deviation
 
     return (HoltWinters,)
 
@@ -489,7 +522,6 @@ def _(mo):
 @app.cell
 def _(HoltWinters, mean_squared_error, np):
     from sklearn.model_selection import TimeSeriesSplit
-
 
     def timeseriesCVscore(params, series, loss_function=mean_squared_error, slen=24):
         """Mean error across rolling CV folds for a given (alpha, beta, gamma)."""
@@ -533,10 +565,24 @@ def _(mo):
 def _(HoltWinters, ads, mean_squared_log_error, minimize, timeseriesCVscore):
     data = ads.Ads[:-20]  # hold out the last 20 hours
     x = [0, 0, 0]
-    _opt = minimize(timeseriesCVscore, x0=x, args=(data, mean_squared_log_error), method='TNC', bounds=((0, 1), (0, 1), (0, 1)))  # initial alpha, beta, gamma
+    _opt = minimize(
+        timeseriesCVscore,
+        x0=x,
+        args=(data, mean_squared_log_error),
+        method="TNC",
+        bounds=((0, 1), (0, 1), (0, 1)),
+    )  # initial alpha, beta, gamma
     _alpha_final, _beta_final, _gamma_final = _opt.x
     print(_alpha_final, _beta_final, _gamma_final)
-    model = HoltWinters(data, slen=24, alpha=_alpha_final, beta=_beta_final, gamma=_gamma_final, n_preds=50, scaling_factor=3)
+    model = HoltWinters(
+        data,
+        slen=24,
+        alpha=_alpha_final,
+        beta=_beta_final,
+        gamma=_gamma_final,
+        n_preds=50,
+        scaling_factor=3,
+    )
     model.triple_exponential_smoothing()
     return (model,)
 
@@ -548,7 +594,9 @@ def _(ads, mean_absolute_percentage_error, model, np, plt):
         plt.figure(figsize=(20, 10))
         plt.plot(model.result, label="Model")
         plt.plot(series.values, label="Actual")
-        error = mean_absolute_percentage_error(series.values, model.result[: len(series)])
+        error = mean_absolute_percentage_error(
+            series.values, model.result[: len(series)]
+        )
         plt.title("Mean Absolute Percentage Error: {0:.2f}%".format(error))
 
         if plot_anomalies:
@@ -582,7 +630,6 @@ def _(ads, mean_absolute_percentage_error, model, np, plt):
         plt.grid(True)
         plt.axis("tight")
         plt.legend(loc="best", fontsize=13)
-
 
     plotHoltWinters(ads.Ads)
     plotHoltWinters(ads.Ads, plot_intervals=True, plot_anomalies=True)
@@ -620,10 +667,24 @@ def _(
 ):
     data_1 = currency.GEMS_GEMS_SPENT[:-50]
     slen = 30
-    _opt = minimize(timeseriesCVscore, x0=[0, 0, 0], args=(data_1, mean_absolute_percentage_error, slen), method='TNC', bounds=((0, 1), (0, 1), (0, 1)))
+    _opt = minimize(
+        timeseriesCVscore,
+        x0=[0, 0, 0],
+        args=(data_1, mean_absolute_percentage_error, slen),
+        method="TNC",
+        bounds=((0, 1), (0, 1), (0, 1)),
+    )
     _alpha_final, _beta_final, _gamma_final = _opt.x
     print(_alpha_final, _beta_final, _gamma_final)
-    model_1 = HoltWinters(data_1, slen=slen, alpha=_alpha_final, beta=_beta_final, gamma=_gamma_final, n_preds=100, scaling_factor=3)
+    model_1 = HoltWinters(
+        data_1,
+        slen=slen,
+        alpha=_alpha_final,
+        beta=_beta_final,
+        gamma=_gamma_final,
+        n_preds=100,
+        scaling_factor=3,
+    )
     model_1.triple_exponential_smoothing()
     plotHoltWinters(currency.GEMS_GEMS_SPENT)
     plotHoltWinters(currency.GEMS_GEMS_SPENT, plot_intervals=True, plot_anomalies=True)
@@ -653,7 +714,6 @@ def _(np, plt, sm):
         plt.figure(figsize=(15, 5))
         plt.plot(white_noise)
 
-
     def plotProcess(n_samples=1000, rho=0):
         x = w = np.random.normal(size=n_samples)
         for t in range(n_samples):
@@ -667,7 +727,6 @@ def _(np, plt, sm):
                     rho, round(sm.tsa.stattools.adfuller(x)[1], 3)
                 )
             )
-
 
     for rho in [0, 0.6, 0.9, 1]:
         plotProcess(rho=rho)
@@ -693,7 +752,7 @@ def _(mo):
 
 @app.cell
 def _(ads, pd, plt, sm, smt):
-    def tsplot(y, lags=None, figsize=(12, 7), style='bmh'):
+    def tsplot(y, lags=None, figsize=(12, 7), style="bmh"):
         """Plot the series, its ACF and PACF, and the Dickey-Fuller p-value."""
         if not isinstance(_y, pd.Series):
             _y = pd.Series(_y)
@@ -705,10 +764,13 @@ def _(ads, pd, plt, sm, smt):
             pacf_ax = plt.subplot2grid(layout, (1, 1))
             ts_ax.plot(_y)
             p_value = sm.tsa.stattools.adfuller(_y)[1]
-            ts_ax.set_title('Time Series Analysis Plots\n Dickey-Fuller: p={0:.5f}'.format(p_value))
+            ts_ax.set_title(
+                "Time Series Analysis Plots\n Dickey-Fuller: p={0:.5f}".format(p_value)
+            )
             smt.graphics.plot_acf(_y, lags=lags, ax=acf_ax)
             smt.graphics.plot_pacf(_y, lags=lags, ax=pacf_ax)
             plt.tight_layout()
+
     tsplot(ads.Ads, lags=60)  # already stationary, but seasonal
     return (tsplot,)
 
@@ -758,7 +820,6 @@ def _(ads, pd, product, sm, tqdm):
     parameters_list = list(product(ps, qs, Ps, Qs))
     len(parameters_list)
 
-
     def optimizeSARIMA(parameters_list, d, D, s):
         """Return a dataframe of (p, q, P, Q) tuples and their AIC, best first."""
         results = []
@@ -781,7 +842,6 @@ def _(ads, pd, product, sm, tqdm):
 
         result_table = pd.DataFrame(results, columns=["parameters", "aic"])
         return result_table.sort_values(by="aic", ascending=True).reset_index(drop=True)
-
 
     result_table = optimizeSARIMA(parameters_list, d, D, s)
     result_table.head()
@@ -830,7 +890,9 @@ def _(ads, best_model, d, mean_absolute_percentage_error, np, pd, plt, s):
         data.loc[data.index[: s + d], "arima_model"] = np.nan
 
         forecast = model.predict(start=data.shape[0], end=data.shape[0] + n_steps)
-        forecast = pd.concat([data.arima_model, forecast])  # fitted line + out-of-sample
+        forecast = pd.concat(
+            [data.arima_model, forecast]
+        )  # fitted line + out-of-sample
         error = mean_absolute_percentage_error(
             data["actual"][s + d :], data["arima_model"][s + d :]
         )
@@ -842,7 +904,6 @@ def _(ads, best_model, d, mean_absolute_percentage_error, np, pd, plt, s):
         plt.plot(data.actual, label="actual")
         plt.legend()
         plt.grid(True)
-
 
     plotSARIMA(ads, best_model, 50)
     return
@@ -874,10 +935,10 @@ def _(mo):
 @app.cell
 def _(ads, pd):
     data_2 = pd.DataFrame(ads.Ads.copy())
-    data_2.columns = ['y']
+    data_2.columns = ["y"]
     for i in range(6, 25):
-    # lags from 6 steps back up to 24 -> a 6-step-ahead horizon with a day of history
-        data_2['lag_{}'.format(i)] = data_2.y.shift(i)
+        # lags from 6 steps back up to 24 -> a 6-step-ahead horizon with a day of history
+        data_2["lag_{}".format(i)] = data_2.y.shift(i)
     data_2.tail(7)
     return (data_2,)
 
@@ -896,15 +957,24 @@ def _(mo):
 def _(TimeSeriesSplit, data_2):
     from sklearn.linear_model import LinearRegression
     from sklearn.model_selection import cross_val_score
+
     tscv = TimeSeriesSplit(n_splits=5)
 
     def timeseries_train_test_split(X, y, test_size):
         """Train/test split that respects the time ordering: test is the tail."""
         test_index = int(len(_X) * (1 - test_size))
-        return (_X.iloc[:test_index], _X.iloc[test_index:], _y.iloc[:test_index], _y.iloc[test_index:])
+        return (
+            _X.iloc[:test_index],
+            _X.iloc[test_index:],
+            _y.iloc[:test_index],
+            _y.iloc[test_index:],
+        )
+
     _y = data_2.dropna().y
-    _X = data_2.dropna().drop(['y'], axis=1)
-    X_train, X_test, y_train, y_test = timeseries_train_test_split(_X, _y, test_size=0.3)
+    _X = data_2.dropna().drop(["y"], axis=1)
+    X_train, X_test, y_train, y_test = timeseries_train_test_split(
+        _X, _y, test_size=0.3
+    )
     lr = LinearRegression()
     lr.fit(X_train, y_train)
     return (
@@ -945,7 +1015,11 @@ def _(
     y_train,
 ):
     def plotModelResults(
-        model, X_train=X_train, X_test=X_test, plot_intervals=False, plot_anomalies=False
+        model,
+        X_train=X_train,
+        X_test=X_test,
+        plot_intervals=False,
+        plot_anomalies=False,
     ):
         """Plot predictions vs actuals, with CV-derived intervals and anomalies."""
         prediction = model.predict(X_test)
@@ -980,7 +1054,6 @@ def _(
         plt.tight_layout()
         plt.grid(True)
 
-
     def plotCoefficients(model):
         """Plot model coefficients sorted by absolute value."""
         coefs = pd.DataFrame(model.coef_, X_train.columns)
@@ -992,7 +1065,6 @@ def _(
         coefs.coef.plot(kind="bar")
         plt.grid(True, axis="y")
         plt.hlines(y=0, xmin=0, xmax=len(coefs), linestyles="dashed")
-
 
     plotModelResults(lr, plot_intervals=True)
     plotCoefficients(lr)
@@ -1023,19 +1095,24 @@ def _(
     timeseries_train_test_split,
 ):
     from sklearn.preprocessing import StandardScaler
+
     data_2.index = pd.to_datetime(data_2.index)
-    data_2['hour'] = data_2.index.hour
-    data_2['weekday'] = data_2.index.weekday
-    data_2['is_weekend'] = data_2.weekday.isin([5, 6]) * 1
+    data_2["hour"] = data_2.index.hour
+    data_2["weekday"] = data_2.index.weekday
+    data_2["is_weekend"] = data_2.weekday.isin([5, 6]) * 1
     scaler = StandardScaler()
     _y = data_2.dropna().y
-    _X = data_2.dropna().drop(['y'], axis=1)
-    X_train_1, X_test_1, y_train_1, y_test_1 = timeseries_train_test_split(_X, _y, test_size=0.3)
+    _X = data_2.dropna().drop(["y"], axis=1)
+    X_train_1, X_test_1, y_train_1, y_test_1 = timeseries_train_test_split(
+        _X, _y, test_size=0.3
+    )
     X_train_scaled = scaler.fit_transform(X_train_1)
     X_test_scaled = scaler.transform(X_test_1)
     lr_1 = LinearRegression()
     lr_1.fit(X_train_scaled, y_train_1)
-    plotModelResults(lr_1, X_train=X_train_scaled, X_test=X_test_scaled, plot_intervals=True)
+    plotModelResults(
+        lr_1, X_train=X_train_scaled, X_test=X_test_scaled, plot_intervals=True
+    )
     plotCoefficients(lr_1)
     return (scaler,)
 
@@ -1057,10 +1134,11 @@ def _(data_2, pd, plt):
     def code_mean(data, cat_feature, real_feature):
         """{category: mean of real_feature within that category}"""
         return dict(data.groupby(cat_feature)[real_feature].mean())
-    average_hour = code_mean(data_2, 'hour', 'y')
+
+    average_hour = code_mean(data_2, "hour", "y")
     plt.figure(figsize=(7, 5))
-    plt.title('Hour averages')
-    pd.DataFrame.from_dict(average_hour, orient='index')[0].plot()
+    plt.title("Hour averages")
+    pd.DataFrame.from_dict(average_hour, orient="index")[0].plot()
     plt.grid(True)
     return (code_mean,)
 
@@ -1083,27 +1161,40 @@ def _(
         target_encoding     - if True, add target averages computed on train only
         """
         data = pd.DataFrame(series.copy())
-        data.columns = ['y']
+        data.columns = ["y"]
         for i in range(lag_start, lag_end):
-            data['lag_{}'.format(i)] = data.y.shift(i)
+            data["lag_{}".format(i)] = data.y.shift(i)
         data.index = pd.to_datetime(data.index)
-        data['hour'] = data.index.hour
-        data['weekday'] = data.index.weekday
-        data['is_weekend'] = data.weekday.isin([5, 6]) * 1
+        data["hour"] = data.index.hour
+        data["weekday"] = data.index.weekday
+        data["is_weekend"] = data.weekday.isin([5, 6]) * 1
         if target_encoding:
             test_index = int(len(data.dropna()) * (1 - test_size))
-            data['weekday_average'] = list(map(code_mean(data[:test_index], 'weekday', 'y').get, data.weekday))
-            data['hour_average'] = list(map(code_mean(data[:test_index], 'hour', 'y').get, data.hour))
-            data.drop(['hour', 'weekday'], axis=1, inplace=True)
+            data["weekday_average"] = list(
+                map(code_mean(data[:test_index], "weekday", "y").get, data.weekday)
+            )
+            data["hour_average"] = list(
+                map(code_mean(data[:test_index], "hour", "y").get, data.hour)
+            )
+            data.drop(["hour", "weekday"], axis=1, inplace=True)
         _y = data.dropna().y
-        _X = data.dropna().drop(['y'], axis=1)
+        _X = data.dropna().drop(["y"], axis=1)
         return timeseries_train_test_split(_X, _y, test_size=test_size)
-    X_train_2, X_test_2, y_train_2, y_test_2 = prepareData(ads.Ads, lag_start=6, lag_end=25, test_size=0.3, target_encoding=True)
+
+    X_train_2, X_test_2, y_train_2, y_test_2 = prepareData(
+        ads.Ads, lag_start=6, lag_end=25, test_size=0.3, target_encoding=True
+    )
     X_train_scaled_1 = scaler.fit_transform(X_train_2)
     X_test_scaled_1 = scaler.transform(X_test_2)
     lr_2 = LinearRegression()
     lr_2.fit(X_train_scaled_1, y_train_2)
-    plotModelResults(lr_2, X_train=X_train_scaled_1, X_test=X_test_scaled_1, plot_intervals=True, plot_anomalies=True)
+    plotModelResults(
+        lr_2,
+        X_train=X_train_scaled_1,
+        X_test=X_test_scaled_1,
+        plot_intervals=True,
+        plot_anomalies=True,
+    )
     plotCoefficients(lr_2)
     return (prepareData,)
 
@@ -1120,7 +1211,9 @@ def _(mo):
 
 @app.cell
 def _(ads, prepareData, scaler):
-    X_train_3, X_test_3, y_train_3, y_test_3 = prepareData(ads.Ads, lag_start=6, lag_end=25, test_size=0.3, target_encoding=False)
+    X_train_3, X_test_3, y_train_3, y_test_3 = prepareData(
+        ads.Ads, lag_start=6, lag_end=25, test_size=0.3, target_encoding=False
+    )
     X_train_scaled_2 = scaler.fit_transform(X_train_3)
     X_test_scaled_2 = scaler.transform(X_test_3)
     return X_test_scaled_2, X_train_3, X_train_scaled_2, y_train_3
@@ -1159,13 +1252,26 @@ def _(
     y_train_3,
 ):
     from sklearn.linear_model import LassoCV, RidgeCV
+
     ridge = RidgeCV(cv=tscv)
     ridge.fit(X_train_scaled_2, y_train_3)
-    plotModelResults(ridge, X_train=X_train_scaled_2, X_test=X_test_scaled_2, plot_intervals=True, plot_anomalies=True)
+    plotModelResults(
+        ridge,
+        X_train=X_train_scaled_2,
+        X_test=X_test_scaled_2,
+        plot_intervals=True,
+        plot_anomalies=True,
+    )
     plotCoefficients(ridge)
     lasso = LassoCV(cv=tscv)
     lasso.fit(X_train_scaled_2, y_train_3)
-    plotModelResults(lasso, X_train=X_train_scaled_2, X_test=X_test_scaled_2, plot_intervals=True, plot_anomalies=True)
+    plotModelResults(
+        lasso,
+        X_train=X_train_scaled_2,
+        X_test=X_test_scaled_2,
+        plot_intervals=True,
+        plot_anomalies=True,
+    )
     plotCoefficients(lasso)
     return
 
@@ -1187,9 +1293,16 @@ def _(mo):
 @app.cell
 def _(X_test_scaled_2, X_train_scaled_2, plotModelResults, y_train_3):
     from xgboost import XGBRegressor
+
     xgb = XGBRegressor(verbosity=0)
     xgb.fit(X_train_scaled_2, y_train_3)
-    plotModelResults(xgb, X_train=X_train_scaled_2, X_test=X_test_scaled_2, plot_intervals=True, plot_anomalies=True)
+    plotModelResults(
+        xgb,
+        X_train=X_train_scaled_2,
+        X_test=X_test_scaled_2,
+        plot_intervals=True,
+        plot_anomalies=True,
+    )
     return
 
 

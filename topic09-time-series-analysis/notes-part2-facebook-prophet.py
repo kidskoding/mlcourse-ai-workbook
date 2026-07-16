@@ -149,9 +149,9 @@ def _(pd):
     df["published"] = pd.to_datetime(df["published"])
 
     # trim to the period we trust: launch date -> end of data
-    df = df[(df["published"] > "2012-08-15") & (df["published"] < "2017-06-26")].sort_values(
-        by=["published"]
-    )
+    df = df[
+        (df["published"] > "2012-08-15") & (df["published"] < "2017-06-26")
+    ].sort_values(by=["published"])
     df.head(3)
     return (df,)
 
@@ -194,10 +194,10 @@ def _(mo):
 
 @app.cell
 def _(daily_df, plt):
-    weekly_df = daily_df.resample('W').sum()
+    weekly_df = daily_df.resample("W").sum()
     _fig, _axes = plt.subplots(2, 1, figsize=(12, 7))
-    daily_df.plot(ax=_axes[0], title='Posts on Medium (daily)', legend=False)
-    weekly_df.plot(ax=_axes[1], title='Posts on Medium (weekly)', legend=False)
+    daily_df.plot(ax=_axes[0], title="Posts on Medium (daily)", legend=False)
+    weekly_df.plot(ax=_axes[1], title="Posts on Medium (weekly)", legend=False)
     plt.tight_layout()
     return
 
@@ -219,7 +219,7 @@ def _(mo):
 
 @app.cell
 def _(daily_df):
-    daily_df_1 = daily_df.loc[daily_df.index >= '2015-01-01']
+    daily_df_1 = daily_df.loc[daily_df.index >= "2015-01-01"]
     daily_df_1.head(3)
     return (daily_df_1,)
 
@@ -246,8 +246,8 @@ def _(mo):
 @app.cell
 def _(daily_df_1):
     df_1 = daily_df_1.reset_index()
-    df_1.columns = ['ds', 'y']
-    df_1['ds'] = df_1['ds'].dt.tz_convert(None)  # Prophet needs tz-naive datetimes
+    df_1.columns = ["ds", "y"]
+    df_1["ds"] = df_1["ds"].dt.tz_convert(None)  # Prophet needs tz-naive datetimes
     prediction_size = 30
     train_df = df_1[:-prediction_size]
     train_df.tail(3)
@@ -273,7 +273,9 @@ def _(Prophet, prediction_size, train_df):
 
     future = m.make_future_dataframe(periods=prediction_size)
     forecast = m.predict(future)
-    forecast[["ds", "trend", "weekly", "yearly", "yhat_lower", "yhat", "yhat_upper"]].tail(3)
+    forecast[
+        ["ds", "trend", "weekly", "yearly", "yhat_lower", "yhat", "yhat_upper"]
+    ].tail(3)
     return forecast, m
 
 
@@ -292,8 +294,8 @@ def _(mo):
 
 @app.cell
 def _(forecast, m):
-    m.plot(forecast);
-    m.plot_components(forecast);
+    m.plot(forecast)
+    m.plot_components(forecast)
     return
 
 
@@ -313,16 +315,21 @@ def _(mo):
 def _(df_1, forecast, np, prediction_size):
     def make_comparison_dataframe(historical, forecast):
         """Join history with forecast -> columns yhat, yhat_lower, yhat_upper, y."""
-        return forecast.set_index('ds')[['yhat', 'yhat_lower', 'yhat_upper']].join(historical.set_index('ds'))
+        return forecast.set_index("ds")[["yhat", "yhat_lower", "yhat_upper"]].join(
+            historical.set_index("ds")
+        )
 
     def calculate_forecast_errors(df, prediction_size):
         """MAPE and MAE over the last `prediction_size` rows."""
         df = df.copy()
-        df['e'] = df['y'] - df['yhat']
-        df['p'] = 100 * df['e'] / df['y']
+        df["e"] = df["y"] - df["yhat"]
+        df["p"] = 100 * df["e"] / df["y"]
         predicted_part = df[-prediction_size:]
-        error_mean = lambda error_name: np.mean(np.abs(predicted_part[error_name]))  # forecast error
-        return {'MAPE': error_mean('p'), 'MAE': error_mean('e')}  # relative error, %
+        error_mean = lambda error_name: np.mean(
+            np.abs(predicted_part[error_name])
+        )  # forecast error
+        return {"MAPE": error_mean("p"), "MAE": error_mean("e")}  # relative error, %
+
     cmp_df = make_comparison_dataframe(df_1, forecast)
     calculate_forecast_errors(cmp_df, prediction_size)  # only the held-out window
     return calculate_forecast_errors, cmp_df, make_comparison_dataframe
@@ -348,14 +355,22 @@ def _(cmp_df, plt, prediction_size):
         """Plot the forecast band over the predicted window against actuals."""
         pred = cmp_df.tail(num_predictions)
         act = cmp_df.tail(num_values)
-        ax.fill_between(pred.index, pred['yhat_lower'], pred['yhat_upper'], color='gray', alpha=0.3, label='Confidence interval')
-        ax.plot(pred.index, pred['yhat'], color='tab:blue', label='Forecast')
-        ax.plot(act.index, act['y'], color='red', label='Actual')
+        ax.fill_between(
+            pred.index,
+            pred["yhat_lower"],
+            pred["yhat_upper"],
+            color="gray",
+            alpha=0.3,
+            label="Confidence interval",
+        )
+        ax.plot(pred.index, pred["yhat"], color="tab:blue", label="Forecast")
+        ax.plot(act.index, act["y"], color="red", label="Actual")
         ax.set_title(title)
-        ax.set_ylabel('Posts')
+        ax.set_ylabel("Posts")
         ax.legend()
+
     _fig, ax = plt.subplots(figsize=(12, 5))
-    show_forecast(cmp_df, prediction_size, 100, 'New posts on Medium', ax)
+    show_forecast(cmp_df, prediction_size, 100, "New posts on Medium", ax)
     return (show_forecast,)
 
 
@@ -410,14 +425,14 @@ def _(
     stats,
     train_df,
 ):
-    train_df2 = train_df.copy().set_index('ds')
-    train_df2['y'], lambda_prophet = stats.boxcox(train_df2['y'])
+    train_df2 = train_df.copy().set_index("ds")
+    train_df2["y"], lambda_prophet = stats.boxcox(train_df2["y"])
     train_df2.reset_index(inplace=True)
     m2 = Prophet()
     m2.fit(train_df2)
     future2 = m2.make_future_dataframe(periods=prediction_size)
     forecast2 = m2.predict(future2)
-    for column in ['yhat', 'yhat_lower', 'yhat_upper']:
+    for column in ["yhat", "yhat_lower", "yhat_upper"]:
         forecast2[column] = inverse_boxcox(forecast2[column], lambda_prophet)
     # invert the transform for the point forecast AND both interval bounds
     cmp_df2 = make_comparison_dataframe(df_1, forecast2)
@@ -440,8 +455,8 @@ def _(mo):
 @app.cell
 def _(cmp_df, cmp_df2, plt, prediction_size, show_forecast):
     _fig, _axes = plt.subplots(2, 1, figsize=(12, 9))
-    show_forecast(cmp_df, prediction_size, 100, 'No transformations', _axes[0])
-    show_forecast(cmp_df2, prediction_size, 100, 'Box-Cox transformation', _axes[1])
+    show_forecast(cmp_df, prediction_size, 100, "No transformations", _axes[0])
+    show_forecast(cmp_df2, prediction_size, 100, "Box-Cox transformation", _axes[1])
     plt.tight_layout()
     return
 

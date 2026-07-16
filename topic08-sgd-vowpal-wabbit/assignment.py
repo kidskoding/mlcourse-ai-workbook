@@ -113,7 +113,7 @@ def _(data_demo, plt):
     plt.scatter(data_demo["Weight"], data_demo["Height"])
     plt.xlabel("Weight (lbs)")
     plt.ylabel("Height (Inch)")
-    plt.grid();
+    plt.grid()
     return
 
 

@@ -73,10 +73,10 @@ def _(Path, ZipFile, requests):
         print("Downloading the dataset from:  ", url)
         response = requests.get(url)
 
-        with open(filepath, 'wb') as f:
+        with open(filepath, "wb") as f:
             f.write(response.content)
 
-        with ZipFile(filepath, 'r') as zipObj:
+        with ZipFile(filepath, "r") as zipObj:
             # Extract all the contents of zip file in current directory
             zipObj.extractall(extract_path)
 
@@ -91,7 +91,7 @@ def _(Path, load_har_dataset):
 
     load_har_dataset(url=FILE_URL, extract_path=DATA_PATH, filename=FILE_NAME)
 
-    PATH_TO_SAMSUNG_DATA = DATA_PATH / FILE_NAME.strip('.zip')
+    PATH_TO_SAMSUNG_DATA = DATA_PATH / FILE_NAME.strip(".zip")
     return (PATH_TO_SAMSUNG_DATA,)
 
 

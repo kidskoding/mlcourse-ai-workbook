@@ -138,14 +138,16 @@ def _():
 def _(np, plt):
     plt.figure(figsize=(6, 4))
     _xx = np.linspace(0, 1, 50)
-    plt.plot(_xx, [2 * x * (1 - x) for x in _xx], label='gini')
-    plt.plot(_xx, [4 * x * (1 - x) for x in _xx], label='2*gini')
-    plt.plot(_xx, [-x * np.log2(x) - (1 - x) * np.log2(1 - x) for x in _xx], label='entropy')
-    plt.plot(_xx, [1 - max(x, 1 - x) for x in _xx], label='missclass')
-    plt.plot(_xx, [2 - 2 * max(x, 1 - x) for x in _xx], label='2*missclass')
-    plt.xlabel('p+')
-    plt.ylabel('criterion')
-    plt.title('Criteria of quality as a function of p+ (binary classification)')
+    plt.plot(_xx, [2 * x * (1 - x) for x in _xx], label="gini")
+    plt.plot(_xx, [4 * x * (1 - x) for x in _xx], label="2*gini")
+    plt.plot(
+        _xx, [-x * np.log2(x) - (1 - x) * np.log2(1 - x) for x in _xx], label="entropy"
+    )
+    plt.plot(_xx, [1 - max(x, 1 - x) for x in _xx], label="missclass")
+    plt.plot(_xx, [2 - 2 * max(x, 1 - x) for x in _xx], label="2*missclass")
+    plt.xlabel("p+")
+    plt.ylabel("criterion")
+    plt.title("Criteria of quality as a function of p+ (binary classification)")
     plt.legend()
     return
 
@@ -171,9 +173,16 @@ def _(np, plt):
     train_labels = np.r_[train_labels, np.ones(100)]
 
     plt.figure(figsize=(10, 8))
-    plt.scatter(train_data[:, 0], train_data[:, 1], c=train_labels,
-                s=100, cmap="autumn", edgecolors="black", linewidth=1.5)
-    plt.plot(range(-2, 5), range(4, -3, -1));  # a candidate linear boundary
+    plt.scatter(
+        train_data[:, 0],
+        train_data[:, 1],
+        c=train_labels,
+        s=100,
+        cmap="autumn",
+        edgecolors="black",
+        linewidth=1.5,
+    )
+    plt.plot(range(-2, 5), range(4, -3, -1))  # a candidate linear boundary
     return train_data, train_labels
 
 
@@ -196,19 +205,28 @@ def _(np, plt, train_data, train_labels):
         x_min, x_max = (_data[:, 0].min() - 1, _data[:, 0].max() + 1)
         y_min, y_max = (_data[:, 1].min() - 1, _data[:, 1].max() + 1)
         return np.meshgrid(np.arange(x_min, x_max, 0.01), np.arange(y_min, y_max, 0.01))
-    clf_tree = DecisionTreeClassifier(criterion='entropy', max_depth=3, random_state=17)
+
+    clf_tree = DecisionTreeClassifier(criterion="entropy", max_depth=3, random_state=17)
     clf_tree.fit(train_data, train_labels)
     _xx, _yy = get_grid(train_data)
     _predicted = clf_tree.predict(np.c_[_xx.ravel(), _yy.ravel()]).reshape(_xx.shape)
-    plt.pcolormesh(_xx, _yy, _predicted, cmap='autumn')
-    plt.scatter(train_data[:, 0], train_data[:, 1], c=train_labels, s=100, cmap='autumn', edgecolors='black', linewidth=1.5)
+    plt.pcolormesh(_xx, _yy, _predicted, cmap="autumn")
+    plt.scatter(
+        train_data[:, 0],
+        train_data[:, 1],
+        c=train_labels,
+        s=100,
+        cmap="autumn",
+        edgecolors="black",
+        linewidth=1.5,
+    )
     return DecisionTreeClassifier, clf_tree, get_grid, plot_tree
 
 
 @app.cell
 def _(clf_tree, plot_tree, plt):
     plt.figure(figsize=(16, 8))
-    plot_tree(clf_tree, feature_names=["x1", "x2"], filled=True);
+    plot_tree(clf_tree, feature_names=["x1", "x2"], filled=True)
     return
 
 
@@ -226,12 +244,17 @@ def _(mo):
 
 @app.cell
 def _(DecisionTreeClassifier, pd, plot_tree, plt):
-    _data = pd.DataFrame({'Age': [17, 64, 18, 20, 38, 49, 55, 25, 29, 31, 33], 'Loan Default': [1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1]})
-    print(_data.sort_values('Age'))
+    _data = pd.DataFrame(
+        {
+            "Age": [17, 64, 18, 20, 38, 49, 55, 25, 29, 31, 33],
+            "Loan Default": [1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1],
+        }
+    )
+    print(_data.sort_values("Age"))
     age_tree = DecisionTreeClassifier(random_state=17)
-    age_tree.fit(_data['Age'].values.reshape(-1, 1), _data['Loan Default'].values)
+    age_tree.fit(_data["Age"].values.reshape(-1, 1), _data["Loan Default"].values)
     plt.figure(figsize=(14, 7))
-    plot_tree(age_tree, feature_names=['Age'], filled=True)
+    plot_tree(age_tree, feature_names=["Age"], filled=True)
     return
 
 
@@ -247,17 +270,19 @@ def _(mo):
 
 @app.cell
 def _(DecisionTreeClassifier, pd, plot_tree, plt):
-    data2 = pd.DataFrame({
-        "Age": [17, 64, 18, 20, 38, 49, 55, 25, 29, 31, 33],
-        "Salary": [25, 80, 22, 36, 37, 59, 74, 70, 33, 102, 88],
-        "Loan Default": [1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1],
-    })
+    data2 = pd.DataFrame(
+        {
+            "Age": [17, 64, 18, 20, 38, 49, 55, 25, 29, 31, 33],
+            "Salary": [25, 80, 22, 36, 37, 59, 74, 70, 33, 102, 88],
+            "Loan Default": [1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1],
+        }
+    )
 
     age_sal_tree = DecisionTreeClassifier(random_state=17)
     age_sal_tree.fit(data2[["Age", "Salary"]].values, data2["Loan Default"].values)
 
     plt.figure(figsize=(16, 8))
-    plot_tree(age_sal_tree, feature_names=["Age", "Salary"], filled=True);
+    plot_tree(age_sal_tree, feature_names=["Age", "Salary"], filled=True)
     return
 
 
@@ -302,28 +327,37 @@ def _(mo):
 @app.cell
 def _(np, plt):
     from sklearn.tree import DecisionTreeRegressor
+
     n_train, n_test, noise = (150, 1000, 0.1)
 
     def _f(x):
         x = x.ravel()
-        return np.exp(-x ** 2) + 1.5 * np.exp(-(x - 2) ** 2)
+        return np.exp(-(x**2)) + 1.5 * np.exp(-((x - 2) ** 2))
 
     def generate(n_samples, noise):
         _X = np.random.rand(n_samples) * 10 - 5
         _X = np.sort(_X).ravel()
-        _y = np.exp(-_X ** 2) + 1.5 * np.exp(-(_X - 2) ** 2) + np.random.normal(0.0, noise, n_samples)
+        _y = (
+            np.exp(-(_X**2))
+            + 1.5 * np.exp(-((_X - 2) ** 2))
+            + np.random.normal(0.0, noise, n_samples)
+        )
         return (_X.reshape((n_samples, 1)), _y)
+
     X_train, y_train = generate(n_samples=n_train, noise=noise)
     X_test, y_test = generate(n_samples=n_test, noise=noise)
     reg_tree = DecisionTreeRegressor(max_depth=5, random_state=17)
     reg_tree.fit(X_train, y_train)
     reg_tree_pred = reg_tree.predict(X_test)
     plt.figure(figsize=(10, 6))
-    plt.plot(X_test, _f(X_test), 'b')
-    plt.scatter(X_train, y_train, c='b', s=20)
-    plt.plot(X_test, reg_tree_pred, 'g', lw=2)
+    plt.plot(X_test, _f(X_test), "b")
+    plt.scatter(X_train, y_train, c="b", s=20)
+    plt.plot(X_test, reg_tree_pred, "g", lw=2)
     plt.xlim([-5, 5])
-    plt.title('Decision tree regressor, MSE = %.2f' % (np.sum((y_test - reg_tree_pred) ** 2) / n_test))
+    plt.title(
+        "Decision tree regressor, MSE = %.2f"
+        % (np.sum((y_test - reg_tree_pred) ** 2) / n_test)
+    )
     plt.show()
     return
 
@@ -390,15 +424,18 @@ def _(DecisionTreeClassifier, pd):
     from sklearn.model_selection import GridSearchCV, cross_val_score, train_test_split
     from sklearn.neighbors import KNeighborsClassifier
     from sklearn.preprocessing import StandardScaler
-    DATA_PATH = 'https://raw.githubusercontent.com/Yorko/mlcourse.ai/main/data/'
-    df = pd.read_csv(DATA_PATH + 'telecom_churn.csv')
-    df['International plan'] = pd.factorize(df['International plan'])[0]
-    df['Voice mail plan'] = pd.factorize(df['Voice mail plan'])[0]
-    df['Churn'] = df['Churn'].astype('int')
-    states = df['State']
-    _y = df['Churn']
-    df.drop(['State', 'Churn'], axis=1, inplace=True)
-    X_train_1, X_holdout, y_train_1, y_holdout = train_test_split(df.values, _y, test_size=0.3, random_state=17)
+
+    DATA_PATH = "https://raw.githubusercontent.com/Yorko/mlcourse.ai/main/data/"
+    df = pd.read_csv(DATA_PATH + "telecom_churn.csv")
+    df["International plan"] = pd.factorize(df["International plan"])[0]
+    df["Voice mail plan"] = pd.factorize(df["Voice mail plan"])[0]
+    df["Churn"] = df["Churn"].astype("int")
+    states = df["State"]
+    _y = df["Churn"]
+    df.drop(["State", "Churn"], axis=1, inplace=True)
+    X_train_1, X_holdout, y_train_1, y_holdout = train_test_split(
+        df.values, _y, test_size=0.3, random_state=17
+    )
     tree = DecisionTreeClassifier(max_depth=5, random_state=17)
     knn = KNeighborsClassifier(n_neighbors=10)
     tree.fit(X_train_1, y_train_1)
@@ -441,7 +478,7 @@ def _(
     y_holdout,
     y_train_1,
 ):
-    _tree_params = {'max_depth': range(1, 11), 'max_features': range(4, 19)}
+    _tree_params = {"max_depth": range(1, 11), "max_features": range(4, 19)}
     _tree_grid = GridSearchCV(tree, _tree_params, cv=5, n_jobs=-1, verbose=True)
     _tree_grid.fit(X_train_1, y_train_1)
     print(_tree_grid.best_params_)
@@ -470,8 +507,11 @@ def _(
     y_train_1,
 ):
     from sklearn.pipeline import Pipeline
-    _knn_pipe = Pipeline([('scaler', StandardScaler()), ('knn', KNeighborsClassifier(n_jobs=-1))])
-    knn_params = {'knn__n_neighbors': range(1, 10)}
+
+    _knn_pipe = Pipeline(
+        [("scaler", StandardScaler()), ("knn", KNeighborsClassifier(n_jobs=-1))]
+    )
+    knn_params = {"knn__n_neighbors": range(1, 10)}
     knn_grid = GridSearchCV(_knn_pipe, knn_params, cv=5, n_jobs=-1, verbose=True)
     knn_grid.fit(X_train_1, y_train_1)
     print(knn_grid.best_params_, knn_grid.best_score_)
@@ -499,13 +539,16 @@ def _(
     y_train_1,
 ):
     from sklearn.ensemble import RandomForestClassifier
+
     forest = RandomForestClassifier(n_estimators=100, n_jobs=-1, random_state=17)
     print(np.mean(cross_val_score(forest, X_train_1, y_train_1, cv=5)))
-    forest_params = {'max_depth': range(6, 12), 'max_features': range(4, 19)}  # ~0.949
+    forest_params = {"max_depth": range(6, 12), "max_features": range(4, 19)}  # ~0.949
     forest_grid = GridSearchCV(forest, forest_params, cv=5, n_jobs=-1, verbose=True)
     forest_grid.fit(X_train_1, y_train_1)
     print(forest_grid.best_params_, forest_grid.best_score_)
-    print(accuracy_score(y_holdout, forest_grid.predict(X_holdout)))  # ~0.951 (CV)  # ~0.954
+    print(
+        accuracy_score(y_holdout, forest_grid.predict(X_holdout))
+    )  # ~0.951 (CV)  # ~0.954
     return (RandomForestClassifier,)
 
 
@@ -534,13 +577,33 @@ def _(DecisionTreeClassifier, KNeighborsClassifier, get_grid, np, plt):
                 _data.append([x1, x2])
                 target.append(np.sign(x1 - x2))
         return (np.array(_data), np.array(target))
+
     _X, _y = form_linearly_separable_data()
     fig, _axes = plt.subplots(1, 2, figsize=(16, 6))
-    for ax, model, title in [(_axes[0], DecisionTreeClassifier(random_state=17).fit(_X, _y), 'Easy task. Decision tree complexifies everything'), (_axes[1], KNeighborsClassifier(n_neighbors=1).fit(_X, _y), 'Easy task, kNN. Not bad')]:
+    for ax, model, title in [
+        (
+            _axes[0],
+            DecisionTreeClassifier(random_state=17).fit(_X, _y),
+            "Easy task. Decision tree complexifies everything",
+        ),
+        (
+            _axes[1],
+            KNeighborsClassifier(n_neighbors=1).fit(_X, _y),
+            "Easy task, kNN. Not bad",
+        ),
+    ]:
         _xx, _yy = get_grid(_X)
         _predicted = model.predict(np.c_[_xx.ravel(), _yy.ravel()]).reshape(_xx.shape)
-        ax.pcolormesh(_xx, _yy, _predicted, cmap='autumn')
-        ax.scatter(_X[:, 0], _X[:, 1], c=_y, s=100, cmap='autumn', edgecolors='black', linewidth=1.5)
+        ax.pcolormesh(_xx, _yy, _predicted, cmap="autumn")
+        ax.scatter(
+            _X[:, 0],
+            _X[:, 1],
+            c=_y,
+            s=100,
+            cmap="autumn",
+            edgecolors="black",
+            linewidth=1.5,
+        )
         ax.set_title(title)
     return
 
@@ -568,17 +631,25 @@ def _(
     train_test_split,
 ):
     from sklearn.datasets import load_digits
+
     _data = load_digits()
     _X, _y = (_data.data, _data.target)
     _f, _axes = plt.subplots(1, 4, sharey=True, figsize=(16, 6))
     for i in range(4):
-        _axes[i].imshow(_X[i, :].reshape([8, 8]), cmap='Greys')
-    X_train_2, X_holdout_1, y_train_2, y_holdout_1 = train_test_split(_X, _y, test_size=0.3, random_state=17)
+        _axes[i].imshow(_X[i, :].reshape([8, 8]), cmap="Greys")
+    X_train_2, X_holdout_1, y_train_2, y_holdout_1 = train_test_split(
+        _X, _y, test_size=0.3, random_state=17
+    )
     tree_1 = DecisionTreeClassifier(max_depth=5, random_state=17)
-    _knn_pipe = Pipeline([('scaler', StandardScaler()), ('knn', KNeighborsClassifier(n_neighbors=10))])
+    _knn_pipe = Pipeline(
+        [("scaler", StandardScaler()), ("knn", KNeighborsClassifier(n_neighbors=10))]
+    )
     tree_1.fit(X_train_2, y_train_2)
     _knn_pipe.fit(X_train_2, y_train_2)
-    print(accuracy_score(y_holdout_1, _knn_pipe.predict(X_holdout_1)), accuracy_score(y_holdout_1, tree_1.predict(X_holdout_1)))
+    print(
+        accuracy_score(y_holdout_1, _knn_pipe.predict(X_holdout_1)),
+        accuracy_score(y_holdout_1, tree_1.predict(X_holdout_1)),
+    )
     return X_holdout_1, X_train_2, tree_1, y_holdout_1, y_train_2
 
 
@@ -596,13 +667,28 @@ def _(
     y_holdout_1,
     y_train_2,
 ):
-    _tree_params = {'max_depth': [1, 2, 3, 5, 10, 20, 25, 30, 40, 50, 64], 'max_features': [1, 2, 3, 5, 10, 20, 30, 50, 64]}
+    _tree_params = {
+        "max_depth": [1, 2, 3, 5, 10, 20, 25, 30, 40, 50, 64],
+        "max_features": [1, 2, 3, 5, 10, 20, 30, 50, 64],
+    }
     _tree_grid = GridSearchCV(tree_1, _tree_params, cv=5, n_jobs=-1, verbose=True)
     _tree_grid.fit(X_train_2, y_train_2)
     print(_tree_grid.best_params_, _tree_grid.best_score_)
     print(accuracy_score(y_holdout_1, _tree_grid.predict(X_holdout_1)))
-    print(np.mean(cross_val_score(KNeighborsClassifier(n_neighbors=1), X_train_2, y_train_2, cv=5)))
-    print(np.mean(cross_val_score(RandomForestClassifier(random_state=17), X_train_2, y_train_2, cv=5)))
+    print(
+        np.mean(
+            cross_val_score(
+                KNeighborsClassifier(n_neighbors=1), X_train_2, y_train_2, cv=5
+            )
+        )
+    )
+    print(
+        np.mean(
+            cross_val_score(
+                RandomForestClassifier(random_state=17), X_train_2, y_train_2, cv=5
+            )
+        )
+    )
     return
 
 
@@ -636,18 +722,27 @@ def _(
         x1 = 0.3 * _y
         x_other = np.random.random(size=[n_obj, n_feat - 1])
         return (np.hstack([x1.reshape([n_obj, 1]), x_other]), _y)
+
     _X, _y = form_noisy_data()
-    X_train_3, X_holdout_2, y_train_3, y_holdout_2 = train_test_split(_X, _y, test_size=0.3, random_state=17)
+    X_train_3, X_holdout_2, y_train_3, y_holdout_2 = train_test_split(
+        _X, _y, test_size=0.3, random_state=17
+    )
     cv_scores, holdout_scores = ([], [])
     n_neighb = [1, 2, 3, 5] + list(range(50, 550, 50))
     for k in n_neighb:
-        _knn_pipe = Pipeline([('scaler', StandardScaler()), ('knn', KNeighborsClassifier(n_neighbors=k))])
-        cv_scores.append(np.mean(cross_val_score(_knn_pipe, X_train_3, y_train_3, cv=5)))
+        _knn_pipe = Pipeline(
+            [("scaler", StandardScaler()), ("knn", KNeighborsClassifier(n_neighbors=k))]
+        )
+        cv_scores.append(
+            np.mean(cross_val_score(_knn_pipe, X_train_3, y_train_3, cv=5))
+        )
         _knn_pipe.fit(X_train_3, y_train_3)
-        holdout_scores.append(accuracy_score(y_holdout_2, _knn_pipe.predict(X_holdout_2)))
-    plt.plot(n_neighb, cv_scores, label='CV')
-    plt.plot(n_neighb, holdout_scores, label='holdout')
-    plt.title('Easy task. kNN fails')
+        holdout_scores.append(
+            accuracy_score(y_holdout_2, _knn_pipe.predict(X_holdout_2))
+        )
+    plt.plot(n_neighb, cv_scores, label="CV")
+    plt.plot(n_neighb, holdout_scores, label="holdout")
+    plt.title("Easy task. kNN fails")
     plt.legend()
     plt.show()
     tree_2 = DecisionTreeClassifier(random_state=17, max_depth=1)

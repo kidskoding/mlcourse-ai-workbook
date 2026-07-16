@@ -80,13 +80,16 @@ def _():
     from sklearn.metrics import accuracy_score
     from sklearn.model_selection import train_test_split
     from sklearn.tree import DecisionTreeClassifier
-    sns.set(style='white')
+
+    sns.set(style="white")
     iris = datasets.load_iris()
     X, y = (iris.data, iris.target)
-    _X_train, _X_test, _y_train, _y_test = train_test_split(X, y, test_size=0.3, stratify=y, random_state=42)
+    _X_train, _X_test, _y_train, _y_test = train_test_split(
+        X, y, test_size=0.3, stratify=y, random_state=42
+    )
     _clf = DecisionTreeClassifier(max_depth=2, random_state=42).fit(_X_train, _y_train)
     _preds = _clf.predict_proba(_X_test)
-    print('Accuracy: {:.5f}'.format(accuracy_score(_y_test, _preds.argmax(axis=1))))
+    print("Accuracy: {:.5f}".format(accuracy_score(_y_test, _preds.argmax(axis=1))))
     return (
         DecisionTreeClassifier,
         X,
@@ -120,16 +123,18 @@ def _(X, decomposition, plt, y):
     plt.plot(X_pca[y == 1, 0], X_pca[y == 1, 1], "go", label="Versicolour")
     plt.plot(X_pca[y == 2, 0], X_pca[y == 2, 1], "ro", label="Virginica")
     plt.legend(loc=0)
-    plt.title("Iris, 4D -> 2D via PCA");
+    plt.title("Iris, 4D -> 2D via PCA")
     return X_pca, pca
 
 
 @app.cell
 def _(DecisionTreeClassifier, X_pca, accuracy_score, train_test_split, y):
-    _X_train, _X_test, _y_train, _y_test = train_test_split(X_pca, y, test_size=0.3, stratify=y, random_state=42)
+    _X_train, _X_test, _y_train, _y_test = train_test_split(
+        X_pca, y, test_size=0.3, stratify=y, random_state=42
+    )
     _clf = DecisionTreeClassifier(max_depth=2, random_state=42).fit(_X_train, _y_train)
     _preds = _clf.predict_proba(_X_test)
-    print('Accuracy: {:.5f}'.format(accuracy_score(_y_test, _preds.argmax(axis=1))))
+    print("Accuracy: {:.5f}".format(accuracy_score(_y_test, _preds.argmax(axis=1))))
     return
 
 
@@ -151,8 +156,19 @@ def _(mo):
 @app.cell
 def _(iris, pca):
     for _i, component in enumerate(pca.components_):
-        print('{} component: {}% of initial variance'.format(_i + 1, round(100 * pca.explained_variance_ratio_[_i], 2)))
-        print(' + '.join(('%.3f x %s' % (value, name) for value, name in zip(component, iris.feature_names))))
+        print(
+            "{} component: {}% of initial variance".format(
+                _i + 1, round(100 * pca.explained_variance_ratio_[_i], 2)
+            )
+        )
+        print(
+            " + ".join(
+                (
+                    "%.3f x %s" % (value, name)
+                    for value, name in zip(component, iris.feature_names)
+                )
+            )
+        )
     return
 
 
@@ -172,11 +188,19 @@ def _(datasets, decomposition, plt):
     X_1, y_1 = (digits.data, digits.target)
     pca_1 = decomposition.PCA(n_components=2)
     X_reduced = pca_1.fit_transform(X_1)
-    print('Projecting %d-dimensional data to 2D' % X_1.shape[1])
+    print("Projecting %d-dimensional data to 2D" % X_1.shape[1])
     plt.figure(figsize=(12, 10))
-    plt.scatter(X_reduced[:, 0], X_reduced[:, 1], c=y_1, edgecolor='none', alpha=0.7, s=40, cmap=plt.get_cmap('nipy_spectral', 10))
+    plt.scatter(
+        X_reduced[:, 0],
+        X_reduced[:, 1],
+        c=y_1,
+        edgecolor="none",
+        alpha=0.7,
+        s=40,
+        cmap=plt.get_cmap("nipy_spectral", 10),
+    )
     plt.colorbar()
-    plt.title('Digits. PCA projection')
+    plt.title("Digits. PCA projection")
     return X_1, y_1
 
 
@@ -197,11 +221,20 @@ def _(X_1, plt, y_1):
     # magic command not supported in marimo; please file an issue to add support
     # %%time
     from sklearn.manifold import TSNE
+
     X_tsne = TSNE(random_state=17).fit_transform(X_1)
     plt.figure(figsize=(12, 10))
-    plt.scatter(X_tsne[:, 0], X_tsne[:, 1], c=y_1, edgecolor='none', alpha=0.7, s=40, cmap=plt.get_cmap('nipy_spectral', 10))
+    plt.scatter(
+        X_tsne[:, 0],
+        X_tsne[:, 1],
+        c=y_1,
+        edgecolor="none",
+        alpha=0.7,
+        s=40,
+        cmap=plt.get_cmap("nipy_spectral", 10),
+    )
     plt.colorbar()
-    plt.title('Digits. t-SNE projection')
+    plt.title("Digits. t-SNE projection")
     return
 
 
@@ -219,13 +252,13 @@ def _(mo):
 def _(X_1, decomposition, np, plt):
     pca_2 = decomposition.PCA().fit(X_1)
     plt.figure(figsize=(10, 7))
-    plt.plot(np.cumsum(pca_2.explained_variance_ratio_), color='k', lw=2)
-    plt.xlabel('Number of components')
-    plt.ylabel('Total explained variance')
+    plt.plot(np.cumsum(pca_2.explained_variance_ratio_), color="k", lw=2)
+    plt.xlabel("Number of components")
+    plt.ylabel("Total explained variance")
     plt.xlim(0, 63)
     plt.yticks(np.arange(0, 1.1, 0.1))
-    plt.axvline(21, c='b')
-    plt.axhline(0.9, c='r')
+    plt.axvline(21, c="b")
+    plt.axhline(0.9, c="r")
     plt.show()
     return
 
@@ -269,14 +302,15 @@ def _(np, plt):
     X_2[100:150, 0] = np.random.normal(loc=-1.0, scale=0.2, size=50)
     X_2[100:150, 1] = np.random.normal(loc=2.0, scale=0.5, size=50)
     plt.figure(figsize=(5, 5))
-    plt.plot(X_2[:, 0], X_2[:, 1], 'bo')
-    plt.title('Three synthetic blobs')
+    plt.plot(X_2[:, 0], X_2[:, 1], "bo")
+    plt.title("Three synthetic blobs")
     return (X_2,)
 
 
 @app.cell
 def _(X_2, np, plt):
     from scipy.spatial.distance import cdist
+
     np.random.seed(seed=42)
     centroids = np.random.normal(loc=0.0, scale=1.0, size=6).reshape((3, 2))
     cent_history = [centroids]
@@ -291,12 +325,12 @@ def _(X_2, np, plt):
     for _i in range(4):
         labels = cdist(X_2, cent_history[_i]).argmin(axis=1)
         plt.subplot(2, 2, _i + 1)
-        plt.plot(X_2[labels == 0, 0], X_2[labels == 0, 1], 'bo', label='cluster #1')
-        plt.plot(X_2[labels == 1, 0], X_2[labels == 1, 1], 'co', label='cluster #2')
-        plt.plot(X_2[labels == 2, 0], X_2[labels == 2, 1], 'mo', label='cluster #3')
-        plt.plot(cent_history[_i][:, 0], cent_history[_i][:, 1], 'rX')
+        plt.plot(X_2[labels == 0, 0], X_2[labels == 0, 1], "bo", label="cluster #1")
+        plt.plot(X_2[labels == 1, 0], X_2[labels == 1, 1], "co", label="cluster #2")
+        plt.plot(X_2[labels == 2, 0], X_2[labels == 2, 1], "mo", label="cluster #3")
+        plt.plot(cent_history[_i][:, 0], cent_history[_i][:, 1], "rX")
         plt.legend(loc=0)
-        plt.title('Step {:}'.format(_i + 1))
+        plt.title("Step {:}".format(_i + 1))
     return
 
 
@@ -323,13 +357,14 @@ def _(mo):
 @app.cell
 def _(X_2, np, plt):
     from sklearn.cluster import KMeans
+
     inertia = []
     for k in range(1, 8):
-        kmeans = KMeans(n_clusters=k, random_state=1, n_init='auto').fit(X_2)
+        kmeans = KMeans(n_clusters=k, random_state=1, n_init="auto").fit(X_2)
         inertia.append(np.sqrt(kmeans.inertia_))
-    plt.plot(range(1, 8), inertia, marker='s')
-    plt.xlabel('$k$')
-    plt.ylabel('$J(C_k)$')
+    plt.plot(range(1, 8), inertia, marker="s")
+    plt.xlabel("$k$")
+    plt.ylabel("$J(C_k)$")
     return (KMeans,)
 
 
@@ -407,8 +442,11 @@ def _(mo):
 def _(X_2, plt):
     from scipy.cluster import hierarchy
     from scipy.spatial.distance import pdist
+
     distance_mat = pdist(X_2)
-    Z = hierarchy.linkage(distance_mat, 'single')  # upper triangle of pairwise distances
+    Z = hierarchy.linkage(
+        distance_mat, "single"
+    )  # upper triangle of pairwise distances
     plt.figure(figsize=(10, 5))  # the agglomerative merge history
     dn = hierarchy.dendrogram(Z, color_threshold=0.5)
     return
@@ -462,15 +500,34 @@ def _(mo):
 @app.cell
 def _(KMeans, datasets, pd):
     from sklearn import metrics
-    from sklearn.cluster import AffinityPropagation, AgglomerativeClustering, SpectralClustering
+    from sklearn.cluster import (
+        AffinityPropagation,
+        AgglomerativeClustering,
+        SpectralClustering,
+    )
+
     data = datasets.load_digits()
     X_3, y_2 = (data.data, data.target)
-    algorithms = [KMeans(n_clusters=10, random_state=1, n_init='auto'), AffinityPropagation(), SpectralClustering(n_clusters=10, random_state=1, affinity='nearest_neighbors'), AgglomerativeClustering(n_clusters=10)]
+    algorithms = [
+        KMeans(n_clusters=10, random_state=1, n_init="auto"),
+        AffinityPropagation(),
+        SpectralClustering(n_clusters=10, random_state=1, affinity="nearest_neighbors"),
+        AgglomerativeClustering(n_clusters=10),
+    ]
     rows = []
     for algo in algorithms:
         algo.fit(X_3)
-        rows.append({'ARI': metrics.adjusted_rand_score(y_2, algo.labels_), 'AMI': metrics.adjusted_mutual_info_score(y_2, algo.labels_), 'Homogeneity': metrics.homogeneity_score(y_2, algo.labels_), 'Completeness': metrics.completeness_score(y_2, algo.labels_), 'V-measure': metrics.v_measure_score(y_2, algo.labels_), 'Silhouette': metrics.silhouette_score(X_3, algo.labels_)})
-    pd.DataFrame(rows, index=['K-means', 'Affinity', 'Spectral', 'Agglomerative'])
+        rows.append(
+            {
+                "ARI": metrics.adjusted_rand_score(y_2, algo.labels_),
+                "AMI": metrics.adjusted_mutual_info_score(y_2, algo.labels_),
+                "Homogeneity": metrics.homogeneity_score(y_2, algo.labels_),
+                "Completeness": metrics.completeness_score(y_2, algo.labels_),
+                "V-measure": metrics.v_measure_score(y_2, algo.labels_),
+                "Silhouette": metrics.silhouette_score(X_3, algo.labels_),
+            }
+        )
+    pd.DataFrame(rows, index=["K-means", "Affinity", "Spectral", "Agglomerative"])
     return
 
 

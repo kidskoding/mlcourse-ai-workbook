@@ -207,10 +207,12 @@ def _(mo):
 @app.cell
 def _(df, np):
     # Average day-minutes among churned customers
-    df[df["Churn"] == 1]["Total day minutes"].mean()   # ~206.9
+    df[df["Churn"] == 1]["Total day minutes"].mean()  # ~206.9
 
     # Max international minutes among loyal customers with no international plan
-    df[(df["Churn"] == 0) & (df["International plan"] == "No")]["Total intl minutes"].max()  # 18.9
+    df[(df["Churn"] == 0) & (df["International plan"] == "No")][
+        "Total intl minutes"
+    ].max()  # 18.9
 
     # Average of all numeric features for churned users
     df.select_dtypes(include=np.number)[df["Churn"] == 1].mean()
@@ -234,8 +236,8 @@ def _(mo):
 
 @app.cell
 def _(df):
-    df.loc[0:5, "State":"Area code"]   # by label, endpoints included
-    df.iloc[0:5, 0:3]                  # by position, end excluded
+    df.loc[0:5, "State":"Area code"]  # by label, endpoints included
+    df.iloc[0:5, 0:3]  # by position, end excluded
     return
 
 
@@ -255,12 +257,12 @@ def _(mo):
 @app.cell
 def _(df, np):
     df.apply(np.max)  # max of each column
-    df[df['State'].apply(lambda state: state[0] == 'W')].head()
+    df[df["State"].apply(lambda state: state[0] == "W")].head()
     # axis=1 applies per row; here filter states starting with 'W'
-    d = {'No': False, 'Yes': True}
-    df['International plan'] = df['International plan'].map(d)
+    d = {"No": False, "Yes": True}
+    df["International plan"] = df["International plan"].map(d)
     # recode Yes/No -> True/False
-    df_1 = df.replace({'Voice mail plan': d})  # replace leaves unmapped values as-is
+    df_1 = df.replace({"Voice mail plan": d})  # replace leaves unmapped values as-is
     return (df_1,)
 
 
@@ -286,10 +288,10 @@ def _(mo):
 
 @app.cell
 def _(df_1):
-    columns_to_show = ['Total day minutes', 'Total eve minutes', 'Total night minutes']
-    df_1.groupby(['Churn'])[columns_to_show].describe(percentiles=[])
+    columns_to_show = ["Total day minutes", "Total eve minutes", "Total night minutes"]
+    df_1.groupby(["Churn"])[columns_to_show].describe(percentiles=[])
     # equivalent, choosing the statistics explicitly
-    df_1.groupby(['Churn'])[columns_to_show].agg(['mean', 'std', 'min', 'max'])
+    df_1.groupby(["Churn"])[columns_to_show].agg(["mean", "std", "min", "max"])
     return
 
 
@@ -311,9 +313,13 @@ def _(mo):
 
 @app.cell
 def _(df_1, pd):
-    pd.crosstab(df_1['Churn'], df_1['International plan'])
-    pd.crosstab(df_1['Churn'], df_1['Voice mail plan'], normalize=True)
-    df_1.pivot_table(['Total day calls', 'Total eve calls', 'Total night calls'], ['Area code'], aggfunc='mean')
+    pd.crosstab(df_1["Churn"], df_1["International plan"])
+    pd.crosstab(df_1["Churn"], df_1["Voice mail plan"], normalize=True)
+    df_1.pivot_table(
+        ["Total day calls", "Total eve calls", "Total night calls"],
+        ["Area code"],
+        aggfunc="mean",
+    )
     return
 
 
@@ -332,8 +338,13 @@ def _(mo):
 @app.cell
 def _(df_1):
     # add a column directly from a computed expression
-    df_1['Total charge'] = df_1['Total day charge'] + df_1['Total eve charge'] + df_1['Total night charge'] + df_1['Total intl charge']
-    df_1.drop(['Total charge'], axis=1, inplace=True)
+    df_1["Total charge"] = (
+        df_1["Total day charge"]
+        + df_1["Total eve charge"]
+        + df_1["Total night charge"]
+        + df_1["Total intl charge"]
+    )
+    df_1.drop(["Total charge"], axis=1, inplace=True)
     # drop columns (axis=1, in place); dropping rows uses axis=0
     df_1.drop([1, 2]).head()  # returns a copy without rows 1 and 2
     return
@@ -353,7 +364,7 @@ def _(mo):
 
 @app.cell
 def _(df_1, pd):
-    pd.crosstab(df_1['Churn'], df_1['International plan'], margins=True)
+    pd.crosstab(df_1["Churn"], df_1["International plan"], margins=True)
     return
 
 
@@ -367,10 +378,10 @@ def _(mo):
 
 @app.cell
 def _(df_1, pd):
-    pd.crosstab(df_1['Churn'], df_1['Customer service calls'], margins=True)
-    df_1['Many_service_calls'] = (df_1['Customer service calls'] > 3).astype('int')
+    pd.crosstab(df_1["Churn"], df_1["Customer service calls"], margins=True)
+    df_1["Many_service_calls"] = (df_1["Customer service calls"] > 3).astype("int")
     # Turn the threshold into a binary feature: more than 3 service calls
-    pd.crosstab(df_1['Many_service_calls'], df_1['Churn'], margins=True)
+    pd.crosstab(df_1["Many_service_calls"], df_1["Churn"], margins=True)
     return
 
 
@@ -389,7 +400,11 @@ def _(mo):
 
 @app.cell
 def _(df_1, pd):
-    pd.crosstab(df_1['Many_service_calls'] & df_1['International plan'], df_1['Churn'], margins=True)
+    pd.crosstab(
+        df_1["Many_service_calls"] & df_1["International plan"],
+        df_1["Churn"],
+        margins=True,
+    )
     return
 
 

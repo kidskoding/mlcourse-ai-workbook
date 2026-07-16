@@ -128,11 +128,13 @@ def _():
 def _(DecisionTreeRegressor, X, np, plt, y):
     # Friedman's GBM with L2 loss, from scratch: yields (approximation, tree fit) per iteration
     def gbm_l2(X, y, M=3, depth=2, lr=1.0):
-        f = np.full(len(y), y.mean())                            # step 1: gamma = mean under L2
+        f = np.full(len(y), y.mean())  # step 1: gamma = mean under L2
         for _ in range(M):
-            r = y - f                                            # step 3: pseudo-residuals == residuals for L2
-            h = DecisionTreeRegressor(max_depth=depth).fit(X, r)  # step 4: regress onto the gradient
-            f = f + lr * h.predict(X)                            # steps 5-6: rho = 1 for L2
+            r = y - f  # step 3: pseudo-residuals == residuals for L2
+            h = DecisionTreeRegressor(max_depth=depth).fit(
+                X, r
+            )  # step 4: regress onto the gradient
+            f = f + lr * h.predict(X)  # steps 5-6: rho = 1 for L2
             yield f.copy(), h.predict(X)
 
     fig, axes = plt.subplots(2, 3, figsize=(15, 6), sharex=True)
@@ -183,9 +185,15 @@ def _(X, plt, y):
 
     # same data, four losses -> four different things recovered
     fits = {
-        "L2 (mean)": GradientBoostingRegressor(loss="squared_error", max_depth=2, n_estimators=100),
-        "L1 (median)": GradientBoostingRegressor(loss="absolute_error", max_depth=2, n_estimators=100),
-        "quantile a=0.75": GradientBoostingRegressor(loss="quantile", alpha=0.75, max_depth=2, n_estimators=100),
+        "L2 (mean)": GradientBoostingRegressor(
+            loss="squared_error", max_depth=2, n_estimators=100
+        ),
+        "L1 (median)": GradientBoostingRegressor(
+            loss="absolute_error", max_depth=2, n_estimators=100
+        ),
+        "quantile a=0.75": GradientBoostingRegressor(
+            loss="quantile", alpha=0.75, max_depth=2, n_estimators=100
+        ),
         "huber": GradientBoostingRegressor(loss="huber", max_depth=2, n_estimators=100),
     }
 
@@ -230,7 +238,9 @@ def _(X, n, np, plt, rng):
 
     clf = GradientBoostingClassifier(max_depth=2, n_estimators=100).fit(X, y_cls)
     plt.figure(figsize=(10, 4))
-    plt.scatter(X, y_cls + rng.normal(0, 0.05, n), s=5, alpha=0.3)   # jitter for visibility
+    plt.scatter(
+        X, y_cls + rng.normal(0, 0.05, n), s=5, alpha=0.3
+    )  # jitter for visibility
     plt.plot(X, clf.decision_function(X), "b", lw=2, label="decision function f(x)")
     plt.axhline(0, color="k", ls="--", lw=1)
     plt.legend()
@@ -263,7 +273,9 @@ def _(GradientBoostingRegressor, X, np, plt, y):
     w = np.where(X.ravel() <= 0, 0.1, 0.1 + np.abs(np.cos(X.ravel())))
 
     plain = GradientBoostingRegressor(max_depth=2, n_estimators=30).fit(X, y)
-    weighted = GradientBoostingRegressor(max_depth=2, n_estimators=30).fit(X, y, sample_weight=w)
+    weighted = GradientBoostingRegressor(max_depth=2, n_estimators=30).fit(
+        X, y, sample_weight=w
+    )
 
     plt.figure(figsize=(10, 4))
     plt.scatter(X, y, s=5, alpha=0.2)
@@ -297,11 +309,15 @@ def _(GradientBoostingRegressor, X, plt, y):
     plt.figure(figsize=(10, 4))
     plt.scatter(X, y, s=5, alpha=0.2)
     for M, style in [(3, "b"), (300, "r")]:
-        m = GradientBoostingRegressor(max_depth=2, n_estimators=M, learning_rate=1.0).fit(X, y)
+        m = GradientBoostingRegressor(
+            max_depth=2, n_estimators=M, learning_rate=1.0
+        ).fit(X, y)
         plt.plot(X, m.predict(X), style, lw=1.5, label=f"M={M}, lr=1.0")
 
     # the fix: many small steps, not few big ones
-    m = GradientBoostingRegressor(max_depth=2, n_estimators=300, learning_rate=0.05).fit(X, y)
+    m = GradientBoostingRegressor(
+        max_depth=2, n_estimators=300, learning_rate=0.05
+    ).fit(X, y)
     plt.plot(X, m.predict(X), "g", lw=2, label="M=300, lr=0.05 (shrinkage)")
     plt.legend()
     plt.title("overfitting, and what shrinkage does about it")

@@ -69,11 +69,15 @@ def _():
     DATA_PATH = "https://raw.githubusercontent.com/Yorko/mlcourse.ai/main/data/"
     telecom_data = pd.read_csv(DATA_PATH + "telecom_churn.csv")
 
-    telecom_data.loc[telecom_data["Churn"] == False, "Customer service calls"].hist(label="Loyal")
-    telecom_data.loc[telecom_data["Churn"] == True, "Customer service calls"].hist(label="Churn")
+    telecom_data.loc[telecom_data["Churn"] == False, "Customer service calls"].hist(
+        label="Loyal"
+    )
+    telecom_data.loc[telecom_data["Churn"] == True, "Customer service calls"].hist(
+        label="Churn"
+    )
     plt.xlabel("Number of calls")
     plt.ylabel("Number of customers")
-    plt.legend();
+    plt.legend()
     return np, telecom_data
 
 
@@ -92,21 +96,29 @@ def _(np, telecom_data):
         indices = np.random.randint(0, len(data), (n_samples, len(data)))
         return data[indices]
 
-
     def stat_intervals(stat, alpha):
         """Percentile interval estimate at level 1 - alpha."""
         return np.percentile(stat, [100 * alpha / 2.0, 100 * (1 - alpha / 2.0)])
 
-
-    loyal_calls = telecom_data.loc[telecom_data["Churn"] == False, "Customer service calls"].values
-    churn_calls = telecom_data.loc[telecom_data["Churn"] == True, "Customer service calls"].values
+    loyal_calls = telecom_data.loc[
+        telecom_data["Churn"] == False, "Customer service calls"
+    ].values
+    churn_calls = telecom_data.loc[
+        telecom_data["Churn"] == True, "Customer service calls"
+    ].values
 
     np.random.seed(0)
     loyal_mean_scores = [np.mean(s) for s in get_bootstrap_samples(loyal_calls, 1000)]
     churn_mean_scores = [np.mean(s) for s in get_bootstrap_samples(churn_calls, 1000)]
 
-    print("Service calls from loyal: mean interval", stat_intervals(loyal_mean_scores, 0.05))
-    print("Service calls from churn: mean interval", stat_intervals(churn_mean_scores, 0.05))
+    print(
+        "Service calls from loyal: mean interval",
+        stat_intervals(loyal_mean_scores, 0.05),
+    )
+    print(
+        "Service calls from churn: mean interval",
+        stat_intervals(churn_mean_scores, 0.05),
+    )
     return
 
 

@@ -106,7 +106,7 @@ def _(mo):
 @app.cell
 def _(df):
     features = ["Total day minutes", "Total intl calls"]
-    df[features].hist(figsize=(10, 4));
+    df[features].hist(figsize=(10, 4))
     return (features,)
 
 
@@ -122,7 +122,7 @@ def _(mo):
 def _(df, features):
     df[features].plot(
         kind="density", subplots=True, layout=(1, 2), sharex=False, figsize=(10, 4)
-    );
+    )
     return
 
 
@@ -136,7 +136,7 @@ def _(mo):
 
 @app.cell
 def _(df, sns):
-    sns.histplot(df["Total intl calls"], kde=True, stat="density");
+    sns.histplot(df["Total intl calls"], kde=True, stat="density")
     return
 
 
@@ -158,7 +158,7 @@ def _(mo):
 
 @app.cell
 def _(df, sns):
-    sns.boxplot(x="Total intl calls", data=df);
+    sns.boxplot(x="Total intl calls", data=df)
     return
 
 
@@ -177,8 +177,8 @@ def _(mo):
 @app.cell
 def _(df, plt, sns):
     _, _axes = plt.subplots(1, 2, sharey=True, figsize=(6, 4))
-    sns.boxplot(data=df['Total intl calls'], ax=_axes[0])
-    sns.violinplot(data=df['Total intl calls'], ax=_axes[1])
+    sns.boxplot(data=df["Total intl calls"], ax=_axes[0])
+    sns.violinplot(data=df["Total intl calls"], ax=_axes[1])
     return
 
 
@@ -236,8 +236,8 @@ def _(mo):
 @app.cell
 def _(df, plt, sns):
     _, _axes = plt.subplots(nrows=1, ncols=2, figsize=(12, 4))
-    sns.countplot(x='Churn', data=df, ax=_axes[0])
-    sns.countplot(x='Customer service calls', data=df, ax=_axes[1])
+    sns.countplot(x="Churn", data=df, ax=_axes[0])
+    sns.countplot(x="Customer service calls", data=df, ax=_axes[1])
     return
 
 
@@ -268,18 +268,32 @@ def _(df, sns):
     # Keep only numeric features (drop categoricals/target)
     numerical = list(
         set(df.columns)
-        - {"State", "International plan", "Voice mail plan",
-           "Area code", "Churn", "Customer service calls"}
+        - {
+            "State",
+            "International plan",
+            "Voice mail plan",
+            "Area code",
+            "Churn",
+            "Customer service calls",
+        }
     )
     corr_matrix = df[numerical].corr()
-    sns.heatmap(corr_matrix);
+    sns.heatmap(corr_matrix)
     return (numerical,)
 
 
 @app.cell
 def _(numerical):
     # Drop the redundant 'charge' columns (perfectly derived from 'minutes')
-    numerical_1 = list(set(numerical) - {'Total day charge', 'Total eve charge', 'Total night charge', 'Total intl charge'})
+    numerical_1 = list(
+        set(numerical)
+        - {
+            "Total day charge",
+            "Total eve charge",
+            "Total night charge",
+            "Total intl charge",
+        }
+    )
     return (numerical_1,)
 
 
@@ -295,7 +309,7 @@ def _(mo):
 
 @app.cell
 def _(df, plt):
-    plt.scatter(df["Total day minutes"], df["Total night minutes"]);
+    plt.scatter(df["Total day minutes"], df["Total night minutes"])
     return
 
 
@@ -309,7 +323,9 @@ def _(mo):
 
 @app.cell
 def _(df, sns):
-    sns.jointplot(x="Total day minutes", y="Total night minutes", data=df, kind="scatter");
+    sns.jointplot(
+        x="Total day minutes", y="Total night minutes", data=df, kind="scatter"
+    )
     return
 
 
@@ -347,9 +363,12 @@ def _(mo):
 @app.cell
 def _(df, sns):
     sns.lmplot(
-        x="Total day minutes", y="Total night minutes",
-        data=df, hue="Churn", fit_reg=False
-    );
+        x="Total day minutes",
+        y="Total night minutes",
+        data=df,
+        hue="Churn",
+        fit_reg=False,
+    )
     return
 
 
@@ -363,12 +382,12 @@ def _(mo):
 
 @app.cell
 def _(df, numerical_1, plt, sns):
-    numerical_1.append('Customer service calls')
+    numerical_1.append("Customer service calls")
     fig, _axes = plt.subplots(nrows=3, ncols=4, figsize=(10, 7))
     for idx, feat in enumerate(numerical_1):
         ax = _axes[idx // 4, idx % 4]
-        sns.boxplot(x='Churn', y=feat, data=df, ax=ax)
-        ax.set_xlabel('')
+        sns.boxplot(x="Churn", y=feat, data=df, ax=ax)
+        ax.set_xlabel("")
         ax.set_ylabel(feat)
     fig.tight_layout()
     return
@@ -385,8 +404,8 @@ def _(mo):
 @app.cell
 def _(df, plt, sns):
     _, _axes = plt.subplots(1, 2, sharey=True, figsize=(10, 4))
-    sns.boxplot(x='Churn', y='Total day minutes', data=df, ax=_axes[0])
-    sns.violinplot(x='Churn', y='Total day minutes', data=df, ax=_axes[1])
+    sns.boxplot(x="Churn", y="Total day minutes", data=df, ax=_axes[0])
+    sns.violinplot(x="Churn", y="Total day minutes", data=df, ax=_axes[1])
     return
 
 
@@ -401,10 +420,15 @@ def _(mo):
 @app.cell
 def _(df, sns):
     sns.catplot(
-        x="Churn", y="Total day minutes", col="Customer service calls",
+        x="Churn",
+        y="Total day minutes",
+        col="Customer service calls",
         data=df[df["Customer service calls"] < 8],
-        kind="box", col_wrap=4, height=3, aspect=0.8,
-    );
+        kind="box",
+        col_wrap=4,
+        height=3,
+        aspect=0.8,
+    )
     return
 
 
@@ -420,7 +444,7 @@ def _(mo):
 
 @app.cell
 def _(df, sns):
-    sns.countplot(x="Customer service calls", hue="Churn", data=df);
+    sns.countplot(x="Customer service calls", hue="Churn", data=df)
     return
 
 
@@ -435,8 +459,8 @@ def _(mo):
 @app.cell
 def _(df, plt, sns):
     _, _axes = plt.subplots(1, 2, sharey=True, figsize=(10, 4))
-    sns.countplot(x='International plan', hue='Churn', data=df, ax=_axes[0])
-    sns.countplot(x='Voice mail plan', hue='Churn', data=df, ax=_axes[1])
+    sns.countplot(x="International plan", hue="Churn", data=df, ax=_axes[0])
+    sns.countplot(x="Voice mail plan", hue="Churn", data=df, ax=_axes[1])
     return
 
 
@@ -500,7 +524,7 @@ def _(df):
 def _(TSNE, X_scaled, plt):
     tsne = TSNE(random_state=17)
     tsne_repr = tsne.fit_transform(X_scaled)
-    plt.scatter(tsne_repr[:, 0], tsne_repr[:, 1], alpha=0.5);
+    plt.scatter(tsne_repr[:, 0], tsne_repr[:, 1], alpha=0.5)
     return (tsne_repr,)
 
 
@@ -515,17 +539,24 @@ def _(mo):
 @app.cell
 def _(df, plt, tsne_repr):
     plt.scatter(
-        tsne_repr[:, 0], tsne_repr[:, 1],
-        c=df["Churn"].map({False: "blue", True: "orange"}), alpha=0.5,
-    );
+        tsne_repr[:, 0],
+        tsne_repr[:, 1],
+        c=df["Churn"].map({False: "blue", True: "orange"}),
+        alpha=0.5,
+    )
     return
 
 
 @app.cell
 def _(df, plt, tsne_repr):
     _, _axes = plt.subplots(1, 2, sharey=True, figsize=(12, 5))
-    for i, name in enumerate(['International plan', 'Voice mail plan']):
-        _axes[i].scatter(tsne_repr[:, 0], tsne_repr[:, 1], c=df[name].map({'Yes': 'orange', 'No': 'blue'}), alpha=0.5)
+    for i, name in enumerate(["International plan", "Voice mail plan"]):
+        _axes[i].scatter(
+            tsne_repr[:, 0],
+            tsne_repr[:, 1],
+            c=df[name].map({"Yes": "orange", "No": "blue"}),
+            alpha=0.5,
+        )
         _axes[i].set_title(name)
     return
 

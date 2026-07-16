@@ -258,7 +258,7 @@ def _(mo):
 
 @app.cell
 def _():
-    _parameters = {'C': (0.0001, 0.001, 0.01, 0.1, 1, 10)}
+    _parameters = {"C": (0.0001, 0.001, 0.01, 0.1, 1, 10)}
     return
 
 
@@ -421,7 +421,11 @@ def _(mo):
 
 @app.cell
 def _():
-    _parameters = {'max_features': [1, 2, 4], 'min_samples_leaf': [3, 5, 7, 9], 'max_depth': [5, 10, 15]}
+    _parameters = {
+        "max_features": [1, 2, 4],
+        "min_samples_leaf": [3, 5, 7, 9],
+        "max_depth": [5, 10, 15],
+    }
     return
 
 
@@ -489,7 +493,12 @@ def _(mo):
 def _():
     from sklearn.ensemble import BaggingClassifier
     from sklearn.model_selection import RandomizedSearchCV, cross_val_score
-    _parameters = {'max_features': [2, 3, 4], 'max_samples': [0.5, 0.7, 0.9], 'base_estimator__C': [0.0001, 0.001, 0.01, 1, 10, 100]}
+
+    _parameters = {
+        "max_features": [2, 3, 4],
+        "max_samples": [0.5, 0.7, 0.9],
+        "base_estimator__C": [0.0001, 0.001, 0.01, 1, 10, 100],
+    }
     return
 
 

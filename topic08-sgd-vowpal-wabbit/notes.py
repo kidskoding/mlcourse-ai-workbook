@@ -63,8 +63,13 @@ def _():
     import pandas as pd
     from sklearn.datasets import fetch_20newsgroups, load_files
     from sklearn.linear_model import LogisticRegression
-    from sklearn.metrics import (accuracy_score, classification_report,
-                                 confusion_matrix, roc_auc_score, roc_curve)
+    from sklearn.metrics import (
+        accuracy_score,
+        classification_report,
+        confusion_matrix,
+        roc_auc_score,
+        roc_curve,
+    )
     from sklearn.model_selection import train_test_split
     from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 
@@ -105,7 +110,7 @@ def _(DATA_URL, pd, plt):
 
     plt.scatter(data_demo["Weight"], data_demo["Height"])
     plt.xlabel("Weight in lb")
-    plt.ylabel("Height in inches");
+    plt.ylabel("Height in inches")
     return
 
 
@@ -176,7 +181,9 @@ def _(mo):
 def _(LabelEncoder, df):
     label_encoder = LabelEncoder()
 
-    categorical_columns = df.select_dtypes(include=["object", "str"]).columns.union(["education"])
+    categorical_columns = df.select_dtypes(include=["object", "str"]).columns.union(
+        ["education"]
+    )
     for column in categorical_columns:
         df[column] = label_encoder.fit_transform(df[column])
     df.head()
@@ -206,7 +213,6 @@ def _(
         logit = LogisticRegression()
         logit.fit(train_features, train_labels.values.ravel())
         return classification_report(test_labels, logit.predict(test_features))
-
 
     # label-encoded: high accuracy, ~zero recall on class 1. A useless model.
     print(logistic_regression_accuracy_on(df[categorical_columns], labels))
@@ -244,7 +250,7 @@ def _(
     encoded_categorical_columns = pd.DataFrame(
         onehot_encoder.fit_transform(df[categorical_columns])
     )
-    print(encoded_categorical_columns.shape)   # 53 columns from 10 original features
+    print(encoded_categorical_columns.shape)  # 53 columns from 10 original features
 
     print(logistic_regression_accuracy_on(encoded_categorical_columns, labels))
     return
@@ -336,11 +342,18 @@ def _(mo):
 @app.cell
 def _(subprocess):
     #! vw --help | head
-    subprocess.call(['vw', '--help', '|', 'head'])
+    subprocess.call(["vw", "--help", "|", "head"])
 
     # feed one hand-written example through VW to sanity-check the format
     #! echo '1 1.0 |Subject WHAT car is this |Organization University of Maryland:0.5 College Park' | vw
-    subprocess.call(['echo', '1 1.0 |Subject WHAT car is this |Organization University of Maryland:0.5 College Park', '|', 'vw'])
+    subprocess.call(
+        [
+            "echo",
+            "1 1.0 |Subject WHAT car is this |Organization University of Maryland:0.5 College Park",
+            "|",
+            "vw",
+        ]
+    )
     return
 
 
@@ -360,7 +373,6 @@ def _(mo):
 def _(PATH_TO_WRITE_DATA, fetch_20newsgroups, re):
     newsgroups = fetch_20newsgroups(data_home=PATH_TO_WRITE_DATA)
 
-
     def to_vw_format(document, label=None):
         return (
             str(label or "")
@@ -368,7 +380,6 @@ def _(PATH_TO_WRITE_DATA, fetch_20newsgroups, re):
             + " ".join(re.findall(r"\w{3,}", document.lower()))
             + "\n"
         )
-
 
     all_documents = newsgroups["data"]
     all_targets = [
@@ -393,12 +404,14 @@ def _(
         all_documents, all_targets, random_state=7
     )
 
-    with open(os.path.join(PATH_TO_WRITE_DATA, "20news_train.vw"), "w") as vw_train_data:
+    with open(
+        os.path.join(PATH_TO_WRITE_DATA, "20news_train.vw"), "w"
+    ) as vw_train_data:
         for text, target in zip(train_documents, train_labels):
             vw_train_data.write(to_vw_format(text, target))
 
     with open(os.path.join(PATH_TO_WRITE_DATA, "20news_test.vw"), "w") as vw_test_data:
-        for text in test_documents:          # no label on test rows
+        for text in test_documents:  # no label on test rows
             vw_test_data.write(to_vw_format(text))
     return (test_labels,)
 
@@ -418,20 +431,43 @@ def _(mo):
 @app.cell
 def _(subprocess):
     #! vw -d $PATH_TO_WRITE_DATA/20news_train.vw --loss_function hinge -f $PATH_TO_WRITE_DATA/20news_model.vw
-    subprocess.call(['vw', '-d', '$PATH_TO_WRITE_DATA/20news_train.vw', '--loss_function', 'hinge', '-f', '$PATH_TO_WRITE_DATA/20news_model.vw'])
+    subprocess.call(
+        [
+            "vw",
+            "-d",
+            "$PATH_TO_WRITE_DATA/20news_train.vw",
+            "--loss_function",
+            "hinge",
+            "-f",
+            "$PATH_TO_WRITE_DATA/20news_model.vw",
+        ]
+    )
     return
 
 
 @app.cell
 def _(subprocess):
     #! vw -i $PATH_TO_WRITE_DATA/20news_model.vw -t -d $PATH_TO_WRITE_DATA/20news_test.vw -p $PATH_TO_WRITE_DATA/20news_test_predictions.txt
-    subprocess.call(['vw', '-i', '$PATH_TO_WRITE_DATA/20news_model.vw', '-t', '-d', '$PATH_TO_WRITE_DATA/20news_test.vw', '-p', '$PATH_TO_WRITE_DATA/20news_test_predictions.txt'])
+    subprocess.call(
+        [
+            "vw",
+            "-i",
+            "$PATH_TO_WRITE_DATA/20news_model.vw",
+            "-t",
+            "-d",
+            "$PATH_TO_WRITE_DATA/20news_test.vw",
+            "-p",
+            "$PATH_TO_WRITE_DATA/20news_test_predictions.txt",
+        ]
+    )
     return
 
 
 @app.cell
 def _(PATH_TO_WRITE_DATA, os, plt, roc_auc_score, roc_curve, test_labels):
-    with open(os.path.join(PATH_TO_WRITE_DATA, "20news_test_predictions.txt")) as pred_file:
+    with open(
+        os.path.join(PATH_TO_WRITE_DATA, "20news_test_predictions.txt")
+    ) as pred_file:
         test_prediction = [float(label) for label in pred_file.readlines()]
 
     auc = roc_auc_score(test_labels, test_prediction)
@@ -442,7 +478,7 @@ def _(PATH_TO_WRITE_DATA, os, plt, roc_auc_score, roc_curve, test_labels):
     plt.xlabel("FPR")
     plt.ylabel("TPR")
     plt.title("test AUC = %f" % auc)
-    plt.axis([-0.05, 1.05, -0.05, 1.05]);
+    plt.axis([-0.05, 1.05, -0.05, 1.05])
     return
 
 
@@ -471,12 +507,16 @@ def _(
     train_test_split,
 ):
     topic_encoder = LabelEncoder()
-    all_targets_mult = topic_encoder.fit_transform(newsgroups['target']) + 1  # VW wants 1..K
-    train_documents_1, test_documents_1, train_labels_mult, test_labels_mult = train_test_split(all_documents, all_targets_mult, random_state=7)
-    with open(os.path.join(PATH_TO_WRITE_DATA, '20news_train_mult.vw'), 'w') as f:
+    all_targets_mult = (
+        topic_encoder.fit_transform(newsgroups["target"]) + 1
+    )  # VW wants 1..K
+    train_documents_1, test_documents_1, train_labels_mult, test_labels_mult = (
+        train_test_split(all_documents, all_targets_mult, random_state=7)
+    )
+    with open(os.path.join(PATH_TO_WRITE_DATA, "20news_train_mult.vw"), "w") as f:
         for text_1, target_1 in zip(train_documents_1, train_labels_mult):
             f.write(to_vw_format(text_1, target_1))
-    with open(os.path.join(PATH_TO_WRITE_DATA, '20news_test_mult.vw'), 'w') as f:
+    with open(os.path.join(PATH_TO_WRITE_DATA, "20news_test_mult.vw"), "w") as f:
         for text_1 in test_documents_1:
             f.write(to_vw_format(text_1))
     return (test_labels_mult,)
@@ -485,9 +525,30 @@ def _(
 @app.cell
 def _(subprocess):
     #! vw --oaa 20 $PATH_TO_WRITE_DATA/20news_train_mult.vw -f $PATH_TO_WRITE_DATA/20news_model_mult.vw --loss_function=hinge
-    subprocess.call(['vw', '--oaa', '20', '$PATH_TO_WRITE_DATA/20news_train_mult.vw', '-f', '$PATH_TO_WRITE_DATA/20news_model_mult.vw', '--loss_function=hinge'])
+    subprocess.call(
+        [
+            "vw",
+            "--oaa",
+            "20",
+            "$PATH_TO_WRITE_DATA/20news_train_mult.vw",
+            "-f",
+            "$PATH_TO_WRITE_DATA/20news_model_mult.vw",
+            "--loss_function=hinge",
+        ]
+    )
     #! vw -i $PATH_TO_WRITE_DATA/20news_model_mult.vw -t -d $PATH_TO_WRITE_DATA/20news_test_mult.vw -p $PATH_TO_WRITE_DATA/20news_test_predictions_mult.txt
-    subprocess.call(['vw', '-i', '$PATH_TO_WRITE_DATA/20news_model_mult.vw', '-t', '-d', '$PATH_TO_WRITE_DATA/20news_test_mult.vw', '-p', '$PATH_TO_WRITE_DATA/20news_test_predictions_mult.txt'])
+    subprocess.call(
+        [
+            "vw",
+            "-i",
+            "$PATH_TO_WRITE_DATA/20news_model_mult.vw",
+            "-t",
+            "-d",
+            "$PATH_TO_WRITE_DATA/20news_test_mult.vw",
+            "-p",
+            "$PATH_TO_WRITE_DATA/20news_test_predictions_mult.txt",
+        ]
+    )
     return
 
 
@@ -501,13 +562,15 @@ def _(
     os,
     test_labels_mult,
 ):
-    with open(os.path.join(PATH_TO_WRITE_DATA, '20news_test_predictions_mult.txt')) as pred_file_1:
+    with open(
+        os.path.join(PATH_TO_WRITE_DATA, "20news_test_predictions_mult.txt")
+    ) as pred_file_1:
         test_prediction_mult = [float(label) for label in pred_file_1.readlines()]
     print(accuracy_score(test_labels_mult, test_prediction_mult))
     M = confusion_matrix(test_labels_mult, test_prediction_mult)
     for i in np.where(M[0, :] > 0)[0][1:]:
-    # what does atheism get confused with?
-        print(newsgroups['target_names'][i], M[0, i])
+        # what does atheism get confused with?
+        print(newsgroups["target_names"][i], M[0, i])
     return
 
 
@@ -551,9 +614,11 @@ def _(PATH_TO_WRITE_DATA, load_files, np, os):
 
     url = "http://ai.stanford.edu/~amaas/data/sentiment/aclImdb_v1.tar.gz"
 
-
     def load_imdb_dataset(extract_path=PATH_TO_WRITE_DATA, overwrite=False):
-        if os.path.isfile(os.path.join(extract_path, "aclImdb", "README")) and not overwrite:
+        if (
+            os.path.isfile(os.path.join(extract_path, "aclImdb", "README"))
+            and not overwrite
+        ):
             print("IMDB dataset is already in place.")
             return
         print("Downloading the dataset from: ", url)
@@ -561,17 +626,20 @@ def _(PATH_TO_WRITE_DATA, load_files, np, os):
         tar = tarfile.open(mode="r:gz", fileobj=BytesIO(response.content))
         tar.extractall(extract_path)
 
-
     load_imdb_dataset()
 
     PATH_TO_IMDB = PATH_TO_WRITE_DATA + "aclImdb"
-    reviews_train = load_files(os.path.join(PATH_TO_IMDB, "train"), categories=["pos", "neg"])
+    reviews_train = load_files(
+        os.path.join(PATH_TO_IMDB, "train"), categories=["pos", "neg"]
+    )
     text_train, y_train = reviews_train.data, reviews_train.target
 
-    reviews_test = load_files(os.path.join(PATH_TO_IMDB, "test"), categories=["pos", "neg"])
+    reviews_test = load_files(
+        os.path.join(PATH_TO_IMDB, "test"), categories=["pos", "neg"]
+    )
     text_test, y_test = reviews_test.data, reviews_test.target
 
-    print(len(text_train), np.bincount(y_train))   # 25000, perfectly balanced
+    print(len(text_train), np.bincount(y_train))  # 25000, perfectly balanced
     return (y_test,)
 
 
@@ -593,7 +661,7 @@ app._unparsable_cell(
 
     !head -2 $PATH_TO_WRITE_DATA/movie_reviews_train.vw
     """,
-    name="_"
+    name="_",
 )
 
 
@@ -627,16 +695,30 @@ app._unparsable_cell(
 
     score_vw_predictions("movie_valid_pred.txt", valid_labels)   # ~0.885 / 0.942
     """,
-    name="_"
+    name="_",
 )
 
 
 @app.cell
 def _(score_vw_predictions, subprocess, y_test):
     #! vw -i $PATH_TO_WRITE_DATA/movie_reviews_model.vw -t -d $PATH_TO_WRITE_DATA/movie_reviews_test.vw -p $PATH_TO_WRITE_DATA/movie_test_pred.txt --quiet
-    subprocess.call(['vw', '-i', '$PATH_TO_WRITE_DATA/movie_reviews_model.vw', '-t', '-d', '$PATH_TO_WRITE_DATA/movie_reviews_test.vw', '-p', '$PATH_TO_WRITE_DATA/movie_test_pred.txt', '--quiet'])
+    subprocess.call(
+        [
+            "vw",
+            "-i",
+            "$PATH_TO_WRITE_DATA/movie_reviews_model.vw",
+            "-t",
+            "-d",
+            "$PATH_TO_WRITE_DATA/movie_reviews_test.vw",
+            "-p",
+            "$PATH_TO_WRITE_DATA/movie_test_pred.txt",
+            "--quiet",
+        ]
+    )
 
-    score_vw_predictions("movie_test_pred.txt", y_test)   # ~0.88 / 0.94 — hold-out was honest
+    score_vw_predictions(
+        "movie_test_pred.txt", y_test
+    )  # ~0.88 / 0.94 — hold-out was honest
     return
 
 
@@ -655,21 +737,58 @@ def _(mo):
 @app.cell
 def _(score_vw_predictions, subprocess, valid_labels):
     #! vw -d $PATH_TO_WRITE_DATA/movie_reviews_train.vw --loss_function hinge --ngram 2 -f $PATH_TO_WRITE_DATA/movie_reviews_model2.vw --quiet
-    subprocess.call(['vw', '-d', '$PATH_TO_WRITE_DATA/movie_reviews_train.vw', '--loss_function', 'hinge', '--ngram', '2', '-f', '$PATH_TO_WRITE_DATA/movie_reviews_model2.vw', '--quiet'])
+    subprocess.call(
+        [
+            "vw",
+            "-d",
+            "$PATH_TO_WRITE_DATA/movie_reviews_train.vw",
+            "--loss_function",
+            "hinge",
+            "--ngram",
+            "2",
+            "-f",
+            "$PATH_TO_WRITE_DATA/movie_reviews_model2.vw",
+            "--quiet",
+        ]
+    )
 
     #! vw -i $PATH_TO_WRITE_DATA/movie_reviews_model2.vw -t -d $PATH_TO_WRITE_DATA/movie_reviews_valid.vw -p $PATH_TO_WRITE_DATA/movie_valid_pred2.txt --quiet
-    subprocess.call(['vw', '-i', '$PATH_TO_WRITE_DATA/movie_reviews_model2.vw', '-t', '-d', '$PATH_TO_WRITE_DATA/movie_reviews_valid.vw', '-p', '$PATH_TO_WRITE_DATA/movie_valid_pred2.txt', '--quiet'])
+    subprocess.call(
+        [
+            "vw",
+            "-i",
+            "$PATH_TO_WRITE_DATA/movie_reviews_model2.vw",
+            "-t",
+            "-d",
+            "$PATH_TO_WRITE_DATA/movie_reviews_valid.vw",
+            "-p",
+            "$PATH_TO_WRITE_DATA/movie_valid_pred2.txt",
+            "--quiet",
+        ]
+    )
 
-    score_vw_predictions("movie_valid_pred2.txt", valid_labels)   # ~0.894 / 0.954
+    score_vw_predictions("movie_valid_pred2.txt", valid_labels)  # ~0.894 / 0.954
     return
 
 
 @app.cell
 def _(score_vw_predictions, subprocess, y_test):
     #! vw -i $PATH_TO_WRITE_DATA/movie_reviews_model2.vw -t -d $PATH_TO_WRITE_DATA/movie_reviews_test.vw -p $PATH_TO_WRITE_DATA/movie_test_pred2.txt --quiet
-    subprocess.call(['vw', '-i', '$PATH_TO_WRITE_DATA/movie_reviews_model2.vw', '-t', '-d', '$PATH_TO_WRITE_DATA/movie_reviews_test.vw', '-p', '$PATH_TO_WRITE_DATA/movie_test_pred2.txt', '--quiet'])
+    subprocess.call(
+        [
+            "vw",
+            "-i",
+            "$PATH_TO_WRITE_DATA/movie_reviews_model2.vw",
+            "-t",
+            "-d",
+            "$PATH_TO_WRITE_DATA/movie_reviews_test.vw",
+            "-p",
+            "$PATH_TO_WRITE_DATA/movie_test_pred2.txt",
+            "--quiet",
+        ]
+    )
 
-    score_vw_predictions("movie_test_pred2.txt", y_test)   # ~0.888 / 0.952
+    score_vw_predictions("movie_test_pred2.txt", y_test)  # ~0.888 / 0.952
     return
 
 

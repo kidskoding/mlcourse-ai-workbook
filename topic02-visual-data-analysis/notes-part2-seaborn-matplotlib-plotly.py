@@ -65,15 +65,16 @@ def _(mo):
 def _(df):
     sales_by_year = (
         df[[c for c in df.columns if "Sales" in c] + ["Year_of_Release"]]
-        .groupby("Year_of_Release").sum()
+        .groupby("Year_of_Release")
+        .sum()
     )
-    sales_by_year.plot();
+    sales_by_year.plot()
     return (sales_by_year,)
 
 
 @app.cell
 def _(sales_by_year):
-    sales_by_year.plot(kind="bar", rot=45);
+    sales_by_year.plot(kind="bar", rot=45)
     return
 
 
@@ -95,7 +96,7 @@ def _(df, sns):
     # %config InlineBackend.figure_format = 'png'
     sns.pairplot(
         df[["Global_Sales", "Critic_Score", "Critic_Count", "User_Score", "User_Count"]]
-    );
+    )
     # magic command not supported in marimo; please file an issue to add support
     # %config InlineBackend.figure_format = 'svg'
     return
@@ -111,7 +112,7 @@ def _(mo):
 
 @app.cell
 def _(df, sns):
-    sns.histplot(df["Critic_Score"], kde=True, stat="density");
+    sns.histplot(df["Critic_Score"], kde=True, stat="density")
     return
 
 
@@ -125,7 +126,7 @@ def _(mo):
 
 @app.cell
 def _(df, sns):
-    sns.jointplot(x="Critic_Score", y="User_Score", data=df, kind="scatter");
+    sns.jointplot(x="Critic_Score", y="User_Score", data=df, kind="scatter")
     return
 
 
@@ -143,9 +144,11 @@ def _(df, sns):
         df["Platform"].value_counts().sort_values(ascending=False).head(5).index.values
     )
     sns.boxplot(
-        y="Platform", x="Critic_Score",
-        data=df[df["Platform"].isin(top_platforms)], orient="h",
-    );
+        y="Platform",
+        x="Critic_Score",
+        data=df[df["Platform"].isin(top_platforms)],
+        orient="h",
+    )
     return
 
 
@@ -159,12 +162,10 @@ def _(mo):
 
 @app.cell
 def _(df, sns):
-    platform_genre_sales = (
-        df.pivot_table(index="Platform", columns="Genre",
-                       values="Global_Sales", aggfunc="sum")
-        .fillna(0)
-    )
-    sns.heatmap(platform_genre_sales, annot=True, fmt=".1f", linewidths=0.5);
+    platform_genre_sales = df.pivot_table(
+        index="Platform", columns="Genre", values="Global_Sales", aggfunc="sum"
+    ).fillna(0)
+    sns.heatmap(platform_genre_sales, annot=True, fmt=".1f", linewidths=0.5)
     return
 
 
@@ -199,11 +200,21 @@ def _(mo):
 
 @app.cell
 def _(df, go, iplot):
-    years_df = df.groupby('Year_of_Release')[['Global_Sales']].sum().join(df.groupby('Year_of_Release')[['Name']].count())
-    years_df.columns = ['Global_Sales', 'Number_of_Games']
-    _trace0 = go.Scatter(x=years_df.index, y=years_df['Global_Sales'], name='Global Sales')
-    _trace1 = go.Scatter(x=years_df.index, y=years_df['Number_of_Games'], name='Number of games released')
-    _fig = go.Figure(data=[_trace0, _trace1], layout={'title': 'Statistics for video games'})
+    years_df = (
+        df.groupby("Year_of_Release")[["Global_Sales"]]
+        .sum()
+        .join(df.groupby("Year_of_Release")[["Name"]].count())
+    )
+    years_df.columns = ["Global_Sales", "Number_of_Games"]
+    _trace0 = go.Scatter(
+        x=years_df.index, y=years_df["Global_Sales"], name="Global Sales"
+    )
+    _trace1 = go.Scatter(
+        x=years_df.index, y=years_df["Number_of_Games"], name="Number of games released"
+    )
+    _fig = go.Figure(
+        data=[_trace0, _trace1], layout={"title": "Statistics for video games"}
+    )
     iplot(_fig, show_link=False)
     return
 
@@ -218,12 +229,24 @@ def _(mo):
 
 @app.cell
 def _(df, go, iplot):
-    platforms_df = df.groupby('Platform')[['Global_Sales']].sum().join(df.groupby('Platform')[['Name']].count())
-    platforms_df.columns = ['Global_Sales', 'Number_of_Games']
-    platforms_df.sort_values('Global_Sales', ascending=False, inplace=True)
-    _trace0 = go.Bar(x=platforms_df.index, y=platforms_df['Global_Sales'], name='Global Sales')
-    _trace1 = go.Bar(x=platforms_df.index, y=platforms_df['Number_of_Games'], name='Number of games released')
-    _fig = go.Figure(data=[_trace0, _trace1], layout={'title': 'Market share by gaming platform'})
+    platforms_df = (
+        df.groupby("Platform")[["Global_Sales"]]
+        .sum()
+        .join(df.groupby("Platform")[["Name"]].count())
+    )
+    platforms_df.columns = ["Global_Sales", "Number_of_Games"]
+    platforms_df.sort_values("Global_Sales", ascending=False, inplace=True)
+    _trace0 = go.Bar(
+        x=platforms_df.index, y=platforms_df["Global_Sales"], name="Global Sales"
+    )
+    _trace1 = go.Bar(
+        x=platforms_df.index,
+        y=platforms_df["Number_of_Games"],
+        name="Number of games released",
+    )
+    _fig = go.Figure(
+        data=[_trace0, _trace1], layout={"title": "Market share by gaming platform"}
+    )
     iplot(_fig, show_link=False)
     return
 
@@ -238,8 +261,10 @@ def _(mo):
 
 @app.cell
 def _(df, go, iplot):
-    data = [go.Box(y=df[df.Genre == genre].Critic_Score, name=genre)
-            for genre in df.Genre.unique()]
+    data = [
+        go.Box(y=df[df.Genre == genre].Critic_Score, name=genre)
+        for genre in df.Genre.unique()
+    ]
     iplot(data, show_link=False)
     return
 

@@ -56,16 +56,17 @@ def _(os):
 
     URL = "http://ai.stanford.edu/~amaas/data/sentiment/aclImdb_v1.tar.gz"
 
-
     def load_imdb_dataset(extract_path, overwrite=False):
-        if os.path.isfile(os.path.join(extract_path, "aclImdb", "README")) and not overwrite:
+        if (
+            os.path.isfile(os.path.join(extract_path, "aclImdb", "README"))
+            and not overwrite
+        ):
             print("IMDB dataset is already in place.")
             return
         print("Downloading the dataset from: ", URL)
         response = requests.get(URL)
         tar = tarfile.open(mode="r:gz", fileobj=BytesIO(response.content))
         tar.extractall(extract_path)
-
 
     # Local to this workbook: the ~80MB tarball is not in the mlcourse.ai data repo,
     # so it lands in <repo root>/data/ rather than anywhere upstream. ~80MB, don't commit it.
@@ -79,15 +80,19 @@ def _(os):
 def _(DATA_PATH, load_files, np, os):
     PATH_TO_IMDB = DATA_PATH + "aclImdb"
 
-    reviews_train = load_files(os.path.join(PATH_TO_IMDB, "train"), categories=["pos", "neg"])
+    reviews_train = load_files(
+        os.path.join(PATH_TO_IMDB, "train"), categories=["pos", "neg"]
+    )
     text_train, y_train = reviews_train.data, reviews_train.target
 
-    reviews_test = load_files(os.path.join(PATH_TO_IMDB, "test"), categories=["pos", "neg"])
+    reviews_test = load_files(
+        os.path.join(PATH_TO_IMDB, "test"), categories=["pos", "neg"]
+    )
     text_test, y_test = reviews_test.data, reviews_test.target
 
     print(len(text_train), np.bincount(y_train))  # 25000, [12500 12500]
     print(len(text_test), np.bincount(y_test))
-    print(text_train[1][:120], y_train[1])        # a bad review, label 0
+    print(text_train[1][:120], y_train[1])  # a bad review, label 0
     return text_test, text_train, y_test, y_train
 
 
@@ -203,11 +208,15 @@ def _(cv, logit, np, plt):
         coef = classifier.coef_.ravel()
         positive_coefficients = np.argsort(coef)[-n_top_features:]
         negative_coefficients = np.argsort(coef)[:n_top_features]
-        interesting_coefficients = np.hstack([negative_coefficients, positive_coefficients])
+        interesting_coefficients = np.hstack(
+            [negative_coefficients, positive_coefficients]
+        )
 
         plt.figure(figsize=(15, 5))
         colors = ["red" if c < 0 else "blue" for c in coef[interesting_coefficients]]
-        plt.bar(np.arange(2 * n_top_features), coef[interesting_coefficients], color=colors)
+        plt.bar(
+            np.arange(2 * n_top_features), coef[interesting_coefficients], color=colors
+        )
         feature_names = np.array(feature_names)
         plt.xticks(
             np.arange(1, 1 + 2 * n_top_features),
@@ -216,8 +225,7 @@ def _(cv, logit, np, plt):
             ha="right",
         )
 
-
-    visualize_coefficients(logit, cv.get_feature_names_out());
+    visualize_coefficients(logit, cv.get_feature_names_out())
     return
 
 
@@ -304,8 +312,7 @@ def _(grid_logit, plt):
             color="red",
             label="test",
         )
-        plt.legend();
-
+        plt.legend()
 
     plot_grid_scores(grid_logit, "logisticregression__C")
     return
@@ -367,7 +374,7 @@ def _(np, plt):
     X = rng.randn(200, 2)
     y = np.logical_xor(X[:, 0] > 0, X[:, 1] > 0)
 
-    plt.scatter(X[:, 0], X[:, 1], s=30, c=y, cmap=plt.cm.Paired);
+    plt.scatter(X[:, 0], X[:, 1], s=30, c=y, cmap=plt.cm.Paired)
     return X, y
 
 
@@ -395,11 +402,13 @@ def _(LogisticRegression, X, np, plt, y):
         plt.ylabel(r"$x_2$")
         plt.axis([-3, 3, -3, 3])
         plt.colorbar(image)
-        plt.title(plot_title, fontsize=12);
-
+        plt.title(plot_title, fontsize=12)
 
     plot_boundary(
-        LogisticRegression(solver="lbfgs", max_iter=500), X, y, "Logistic Regression, XOR problem"
+        LogisticRegression(solver="lbfgs", max_iter=500),
+        X,
+        y,
+        "Logistic Regression, XOR problem",
     )
     return (plot_boundary,)
 
@@ -440,7 +449,9 @@ def _(LogisticRegression, X, plot_boundary, y):
         ]
     )
 
-    plot_boundary(logit_pipe, X, y, "Logistic Regression + quadratic features. XOR problem")
+    plot_boundary(
+        logit_pipe, X, y, "Logistic Regression + quadratic features. XOR problem"
+    )
     return
 
 

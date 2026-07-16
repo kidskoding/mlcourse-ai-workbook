@@ -21,11 +21,16 @@ for topic_dir, pages in topics.items():
     title = topic_dir.split("-", 1)[1].replace("-", " ").title()
     warn = ""
     if topic_dir[:7] in NON_WASM:
-        warn = f' <small>(uses {NON_WASM[topic_dir[:7]]} — may not run in-browser)</small>'
+        warn = (
+            f" <small>(uses {NON_WASM[topic_dir[:7]]} — may not run in-browser)</small>"
+        )
     links = " · ".join(
-        f'<a href="{p}/">{html.escape(p.parts[-1].replace("-", " "))}</a>' for p in pages
+        f'<a href="{p}/">{html.escape(p.parts[-1].replace("-", " "))}</a>'
+        for p in pages
     )
-    rows.append(f"<li><strong>Topic {int(num)}: {html.escape(title)}</strong>{warn}<br>{links}</li>")
+    rows.append(
+        f"<li><strong>Topic {int(num)}: {html.escape(title)}</strong>{warn}<br>{links}</li>"
+    )
 
 SITE.joinpath("index.html").write_text(f"""<!doctype html>
 <html lang="en">
@@ -49,4 +54,6 @@ SITE.joinpath("index.html").write_text(f"""<!doctype html>
 </body>
 </html>
 """)
-print(f"index.html: {sum(len(v) for v in topics.values())} notebooks across {len(topics)} topics")
+print(
+    f"index.html: {sum(len(v) for v in topics.values())} notebooks across {len(topics)} topics"
+)

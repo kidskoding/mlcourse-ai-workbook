@@ -79,7 +79,7 @@ def _(data, plt):
     plt.xlabel("Test 1")
     plt.ylabel("Test 2")
     plt.title("Microchip tests")
-    plt.legend();
+    plt.legend()
     return X, y
 
 
@@ -208,7 +208,9 @@ def _(mo):
 @app.cell
 def _(LogisticRegressionCV, StratifiedKFold, X_poly, np, y):
     skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=17)
-    c_values = np.logspace(-2, 3, 500)  # log scale: C matters multiplicatively, not additively
+    c_values = np.logspace(
+        -2, 3, 500
+    )  # log scale: C matters multiplicatively, not additively
 
     logit_searcher = LogisticRegressionCV(Cs=c_values, cv=skf, n_jobs=-1)
     logit_searcher.fit(X_poly, y)
@@ -231,11 +233,15 @@ def _(c_values, logit_searcher, np, plt):
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
     ax1.plot(c_values, mean_cv)
-    ax1.set_xlabel("C"); ax1.set_ylabel("Mean CV-accuracy"); ax1.set_title("Full range")
+    ax1.set_xlabel("C")
+    ax1.set_ylabel("Mean CV-accuracy")
+    ax1.set_title("Full range")
 
     ax2.plot(c_values, mean_cv)
-    ax2.set_xlabel("C"); ax2.set_ylabel("Mean CV-accuracy")
-    ax2.set_xlim((0, 10)); ax2.set_title("Zoomed on the useful region");
+    ax2.set_xlabel("C")
+    ax2.set_ylabel("Mean CV-accuracy")
+    ax2.set_xlim((0, 10))
+    ax2.set_title("Zoomed on the useful region")
     return
 
 

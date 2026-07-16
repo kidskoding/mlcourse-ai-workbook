@@ -59,6 +59,7 @@ def _(mo):
 @app.cell
 def _():
     import warnings
+
     warnings.filterwarnings("ignore")
 
     import numpy as np
@@ -66,10 +67,18 @@ def _():
     from matplotlib import pyplot as plt
 
     from sklearn.datasets import make_circles
-    from sklearn.ensemble import (BaggingClassifier, BaggingRegressor,
-                                  RandomForestClassifier, RandomForestRegressor)
-    from sklearn.model_selection import (GridSearchCV, StratifiedKFold,
-                                         cross_val_score, train_test_split)
+    from sklearn.ensemble import (
+        BaggingClassifier,
+        BaggingRegressor,
+        RandomForestClassifier,
+        RandomForestRegressor,
+    )
+    from sklearn.model_selection import (
+        GridSearchCV,
+        StratifiedKFold,
+        cross_val_score,
+        train_test_split,
+    )
     from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
     plt.style.use("ggplot")
@@ -108,24 +117,29 @@ def _(mo):
 def _(BaggingRegressor, DecisionTreeRegressor, RandomForestRegressor, np, plt):
     def f(x):
         x = x.ravel()
-        return np.exp(-x ** 2) + 1.5 * np.exp(-(x - 2) ** 2)
+        return np.exp(-(x**2)) + 1.5 * np.exp(-((x - 2) ** 2))
 
     def generate(n_samples, noise=0.1):
         X = np.sort(np.random.rand(n_samples) * 10 - 5).ravel()
         y = f(X) + np.random.normal(0.0, noise, n_samples)
         return (X.reshape((n_samples, 1)), y)
+
     np.random.seed(42)
     X_train, y_train = generate(150)
     X_test, y_test = generate(1000)
-    models = [('Decision tree', DecisionTreeRegressor(), 'g'), ('Bagging of trees', BaggingRegressor(DecisionTreeRegressor()), 'y'), ('Random forest', RandomForestRegressor(n_estimators=10), 'r')]
+    models = [
+        ("Decision tree", DecisionTreeRegressor(), "g"),
+        ("Bagging of trees", BaggingRegressor(DecisionTreeRegressor()), "y"),
+        ("Random forest", RandomForestRegressor(n_estimators=10), "r"),
+    ]
     for _name, model, color in models:
         pred = model.fit(X_train, y_train).predict(X_test)
         plt.figure(figsize=(10, 4))
-        plt.plot(X_test, f(X_test), 'b')
-        plt.scatter(X_train, y_train, c='b', s=20)
+        plt.plot(X_test, f(X_test), "b")
+        plt.scatter(X_train, y_train, c="b", s=20)
         plt.plot(X_test, pred, color, lw=2)
         plt.xlim([-5, 5])
-        plt.title('%s, MSE = %.2f' % (_name, np.mean((y_test - pred) ** 2)))
+        plt.title("%s, MSE = %.2f" % (_name, np.mean((y_test - pred) ** 2)))
     return
 
 
@@ -154,13 +168,22 @@ def _(
     x_range = np.linspace(X.min(), X.max(), 100)
     xx1, xx2 = np.meshgrid(x_range, x_range)
     grid = np.c_[xx1.ravel(), xx2.ravel()]
-    clfs = [('Decision tree', DecisionTreeClassifier(random_state=42)), ('Bagging (decision trees)', BaggingClassifier(DecisionTreeClassifier(), n_estimators=300, random_state=42)), ('Random forest', RandomForestClassifier(n_estimators=300, random_state=42))]
+    clfs = [
+        ("Decision tree", DecisionTreeClassifier(random_state=42)),
+        (
+            "Bagging (decision trees)",
+            BaggingClassifier(
+                DecisionTreeClassifier(), n_estimators=300, random_state=42
+            ),
+        ),
+        ("Random forest", RandomForestClassifier(n_estimators=300, random_state=42)),
+    ]
     for _name, clf in clfs:
         clf.fit(X_tr, y_tr)
         y_hat = clf.predict(grid).reshape(xx1.shape)
         plt.figure(figsize=(6, 5))
         plt.contourf(xx1, xx2, y_hat, alpha=0.2)
-        plt.scatter(X[:, 0], X[:, 1], c=y, cmap='viridis', alpha=0.7)
+        plt.scatter(X[:, 0], X[:, 1], c=y, cmap="viridis", alpha=0.7)
         plt.title(_name)
     return
 
@@ -197,14 +220,14 @@ def _(mo):
 
 @app.cell
 def _(RandomForestClassifier, StratifiedKFold, cross_val_score, np, pd):
-    DATA_PATH = 'https://raw.githubusercontent.com/Yorko/mlcourse.ai/main/data/'
-    df = pd.read_csv(DATA_PATH + 'telecom_churn.csv')
-    cols = [c for c in df.columns if df[c].dtype in ('float64', 'int64')]
-    X_1, y_1 = (df[cols].copy(), np.asarray(df['Churn'], dtype='int8'))
+    DATA_PATH = "https://raw.githubusercontent.com/Yorko/mlcourse.ai/main/data/"
+    df = pd.read_csv(DATA_PATH + "telecom_churn.csv")
+    cols = [c for c in df.columns if df[c].dtype in ("float64", "int64")]
+    X_1, y_1 = (df[cols].copy(), np.asarray(df["Churn"], dtype="int8"))
     skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
     _rfc = RandomForestClassifier(random_state=42, n_jobs=-1)
     results = cross_val_score(_rfc, X_1, y_1, cv=skf)
-    print('CV accuracy score: {:.2f}%'.format(results.mean() * 100))
+    print("CV accuracy score: {:.2f}%".format(results.mean() * 100))
     return X_1, skf, y_1
 
 
@@ -223,7 +246,9 @@ def _(RandomForestClassifier, X_1, np, plt, skf, y_1):
     def validation_curve(param, grid, **fixed):
         train_acc, test_acc = ([], [])
         for value in grid:
-            _rfc = RandomForestClassifier(random_state=42, n_jobs=-1, **{param: value}, **fixed)
+            _rfc = RandomForestClassifier(
+                random_state=42, n_jobs=-1, **{param: value}, **fixed
+            )
             tr, te = ([], [])
             for train_index, test_index in skf.split(X_1, y_1):
                 _rfc.fit(X_1.iloc[train_index], y_1[train_index])
@@ -233,15 +258,21 @@ def _(RandomForestClassifier, X_1, np, plt, skf, y_1):
             test_acc.append(te)
         train_acc, test_acc = (np.asarray(train_acc), np.asarray(test_acc))
         mean, std = (test_acc.mean(axis=1), test_acc.std(axis=1))
-        print('Best CV accuracy is {:.2f}% with {} {}'.format(mean.max() * 100, grid[np.argmax(mean)], param))
+        print(
+            "Best CV accuracy is {:.2f}% with {} {}".format(
+                mean.max() * 100, grid[np.argmax(mean)], param
+            )
+        )
         fig, ax = plt.subplots(figsize=(8, 4))
-        ax.plot(grid, train_acc.mean(axis=1), alpha=0.5, color='blue', label='train')
-        ax.plot(grid, mean, alpha=0.5, color='red', label='cv')
-        ax.fill_between(grid, mean - std, mean + std, color='#888888', alpha=0.4)
-        ax.fill_between(grid, mean - 2 * std, mean + 2 * std, color='#888888', alpha=0.2)
-        ax.legend(loc='best')
+        ax.plot(grid, train_acc.mean(axis=1), alpha=0.5, color="blue", label="train")
+        ax.plot(grid, mean, alpha=0.5, color="red", label="cv")
+        ax.fill_between(grid, mean - std, mean + std, color="#888888", alpha=0.4)
+        ax.fill_between(
+            grid, mean - 2 * std, mean + 2 * std, color="#888888", alpha=0.2
+        )
+        ax.legend(loc="best")
         ax.set_ylim([0.88, 1.02])
-        ax.set_ylabel('Accuracy')
+        ax.set_ylabel("Accuracy")
         ax.set_xlabel(param)
         return (train_acc, test_acc)
 
@@ -272,8 +303,9 @@ def _(mo):
 
 @app.cell
 def _(validation_curve):
-    _ = validation_curve("max_depth", [3, 5, 7, 9, 11, 13, 15, 17, 20, 22, 24],
-                         n_estimators=100)
+    _ = validation_curve(
+        "max_depth", [3, 5, 7, 9, 11, 13, 15, 17, 20, 22, 24], n_estimators=100
+    )
     return
 
 
@@ -289,8 +321,11 @@ def _(mo):
 
 @app.cell
 def _(validation_curve):
-    _ = validation_curve("min_samples_leaf", [1, 3, 5, 7, 9, 11, 13, 15, 17, 20, 22, 24],
-                         n_estimators=100)
+    _ = validation_curve(
+        "min_samples_leaf",
+        [1, 3, 5, 7, 9, 11, 13, 15, 17, 20, 22, 24],
+        n_estimators=100,
+    )
     return
 
 
@@ -320,7 +355,11 @@ def _(mo):
 
 @app.cell
 def _(GridSearchCV, RandomForestClassifier, X_1, skf, y_1):
-    parameters = {'max_features': [4, 7, 10, 13], 'min_samples_leaf': [1, 3, 5, 7], 'max_depth': [5, 10, 15, 20]}
+    parameters = {
+        "max_features": [4, 7, 10, 13],
+        "min_samples_leaf": [1, 3, 5, 7],
+        "max_depth": [5, 10, 15, 20],
+    }
     _rfc = RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1)
     gcv = GridSearchCV(_rfc, parameters, n_jobs=-1, cv=skf, verbose=1)
     gcv.fit(X_1, y_1)

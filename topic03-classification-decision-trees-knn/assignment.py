@@ -38,6 +38,7 @@ def _():
     from sklearn.tree import DecisionTreeClassifier, export_graphviz
 
     from matplotlib import pyplot as plt
+
     plt.rcParams["figure.figsize"] = (10, 8)
     return GridSearchCV, LabelEncoder, pd, plt
 
@@ -64,7 +65,6 @@ def _(pd):
         out = pd.concat([out, pd.get_dummies(out[feature_list])], axis=1)
         out.drop(feature_list, axis=1, inplace=True)
         return out
-
 
     # Some feature values are present in train and absent in test and vice-versa.
     def intersect_features(train, test):
@@ -101,9 +101,27 @@ def _(LabelEncoder, create_df, features):
         "handsome",
     ]
     df_train["Alcoholic_beverage"] = ["yes", "yes", "no", "no", "yes", "yes", "yes"]
-    df_train["Eloquence"] = ["high", "low", "average", "average", "low", "high", "average"]
-    df_train["Money_spent"] = ["lots", "little", "lots", "little", "lots", "lots", "lots"]
-    df_train["Will_go"] = LabelEncoder().fit_transform(["+", "-", "+", "-", "-", "+", "+"])
+    df_train["Eloquence"] = [
+        "high",
+        "low",
+        "average",
+        "average",
+        "low",
+        "high",
+        "average",
+    ]
+    df_train["Money_spent"] = [
+        "lots",
+        "little",
+        "lots",
+        "little",
+        "lots",
+        "lots",
+        "lots",
+    ]
+    df_train["Will_go"] = LabelEncoder().fit_transform(
+        ["+", "-", "+", "-", "-", "+", "+"]
+    )
 
     df_train = create_df(df_train, features)
     df_train
@@ -133,7 +151,7 @@ def _(create_df, features):
 @app.cell
 def _(df_test, df_train, intersect_features):
     # Some feature values are present in train and absent in test and vice-versa.
-    y = df_train['Will_go']
+    y = df_train["Will_go"]
     df_train_1, df_test_1 = intersect_features(train=df_train, test=df_test)
     df_train_1
     return (df_test_1,)
@@ -283,7 +301,7 @@ def _(mo):
 @app.function
 # information gain calculation
 def information_gain(root, left, right):
-    """ root - initial data, left and right - two partitions of initial data"""
+    """root - initial data, left and right - two partitions of initial data"""
 
     # TODO: answer the question by writing your Python code here; be sure to print out your final answer in a properly formatted way
     pass
@@ -378,12 +396,14 @@ def _(data_test):
 @app.cell
 def _(data_test, data_train):
     # necessary to remove rows with incorrect labels in test dataset
-    data_test_1 = data_test[(data_test['Target'] == ' >50K.') | (data_test['Target'] == ' <=50K.')]
-    data_train.loc[data_train['Target'] == ' <=50K', 'Target'] = 0
-    data_train.loc[data_train['Target'] == ' >50K', 'Target'] = 1
-    data_test_1.loc[data_test_1['Target'] == ' <=50K.', 'Target'] = 0
+    data_test_1 = data_test[
+        (data_test["Target"] == " >50K.") | (data_test["Target"] == " <=50K.")
+    ]
+    data_train.loc[data_train["Target"] == " <=50K", "Target"] = 0
+    data_train.loc[data_train["Target"] == " >50K", "Target"] = 1
+    data_test_1.loc[data_test_1["Target"] == " <=50K.", "Target"] = 0
     # encode target variable as integer
-    data_test_1.loc[data_test_1['Target'] == ' >50K.', 'Target'] = 1
+    data_test_1.loc[data_test_1["Target"] == " >50K.", "Target"] = 1
     return (data_test_1,)
 
 
@@ -397,7 +417,7 @@ def _(mo):
 
 @app.cell
 def _(data_test_1):
-    data_test_1.describe(include='all').T
+    data_test_1.describe(include="all").T
     return
 
 
@@ -420,7 +440,7 @@ def _(data_train, plt):
         else:
             data_train[column].hist(axes=ax)
             plt.xticks(rotation="vertical")
-    plt.subplots_adjust(hspace=0.7, wspace=0.2);
+    plt.subplots_adjust(hspace=0.7, wspace=0.2)
     return
 
 
@@ -454,7 +474,7 @@ def _(mo):
 
 @app.cell
 def _(data_test_1):
-    data_test_1['Age'] = data_test_1['Age'].astype(int)
+    data_test_1["Age"] = data_test_1["Age"].astype(int)
     return
 
 
@@ -468,11 +488,11 @@ def _(mo):
 
 @app.cell
 def _(data_test_1):
-    data_test_1['fnlwgt'] = data_test_1['fnlwgt'].astype(int)
-    data_test_1['Education_Num'] = data_test_1['Education_Num'].astype(int)
-    data_test_1['Capital_Gain'] = data_test_1['Capital_Gain'].astype(int)
-    data_test_1['Capital_Loss'] = data_test_1['Capital_Loss'].astype(int)
-    data_test_1['Hours_per_week'] = data_test_1['Hours_per_week'].astype(int)
+    data_test_1["fnlwgt"] = data_test_1["fnlwgt"].astype(int)
+    data_test_1["Education_Num"] = data_test_1["Education_Num"].astype(int)
+    data_test_1["Capital_Gain"] = data_test_1["Capital_Gain"].astype(int)
+    data_test_1["Capital_Loss"] = data_test_1["Capital_Loss"].astype(int)
+    data_test_1["Hours_per_week"] = data_test_1["Hours_per_week"].astype(int)
     return
 
 
@@ -486,8 +506,8 @@ def _(mo):
 
 @app.cell
 def _(data_test_1, data_train):
-    y_train = data_train.pop('Target')
-    y_test = data_test_1.pop('Target')
+    y_train = data_train.pop("Target")
+    y_test = data_test_1.pop("Target")
     return
 
 
@@ -551,8 +571,20 @@ def _(mo):
 
 @app.cell
 def _(categorical_columns, data_test_1, data_train, numerical_columns, pd):
-    data_train_1 = pd.concat([data_train[numerical_columns], pd.get_dummies(data_train[categorical_columns])], axis=1)
-    data_test_2 = pd.concat([data_test_1[numerical_columns], pd.get_dummies(data_test_1[categorical_columns])], axis=1)
+    data_train_1 = pd.concat(
+        [
+            data_train[numerical_columns],
+            pd.get_dummies(data_train[categorical_columns]),
+        ],
+        axis=1,
+    )
+    data_test_2 = pd.concat(
+        [
+            data_test_1[numerical_columns],
+            pd.get_dummies(data_test_1[categorical_columns]),
+        ],
+        axis=1,
+    )
     return data_test_2, data_train_1
 
 
@@ -578,7 +610,7 @@ def _(mo):
 
 @app.cell
 def _(data_test_2):
-    data_test_2['Country_ Holand-Netherlands'] = 0
+    data_test_2["Country_ Holand-Netherlands"] = 0
     return
 
 

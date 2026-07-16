@@ -51,7 +51,9 @@ def _():
     if not (DATA_PATH / FILE_NAME).exists():
         os.system(f"gdown {FILE_URL} -O {DATA_PATH / FILE_NAME}")
 
-    df = pd.read_json(DATA_PATH / FILE_NAME, compression="gzip", convert_dates=["created"])
+    df = pd.read_json(
+        DATA_PATH / FILE_NAME, compression="gzip", convert_dates=["created"]
+    )
     df.shape
     return df, np, pprint
 
@@ -86,7 +88,9 @@ def _(mo):
 def _(np):
     texts = ["i have a cat", "you have a dog", "you and i have a cat and a dog"]
 
-    vocabulary = list(enumerate(set(word for sentence in texts for word in sentence.split())))
+    vocabulary = list(
+        enumerate(set(word for sentence in texts for word in sentence.split()))
+    )
     print("Vocabulary:", vocabulary)
 
     def vectorize(tokens):
@@ -113,12 +117,13 @@ def _(mo):
 @app.cell
 def _():
     from sklearn.feature_extraction.text import CountVectorizer
+
     _vect = CountVectorizer(ngram_range=(1, 1))
     # unigrams only: the two sentences are indistinguishable
-    print(_vect.fit_transform(['no i have cows', 'i have no cows']).toarray())
+    print(_vect.fit_transform(["no i have cows", "i have no cows"]).toarray())
     print(_vect.vocabulary_)
     _vect = CountVectorizer(ngram_range=(1, 2))
-    print(_vect.fit_transform(['no i have cows', 'i have no cows']).toarray())
+    print(_vect.fit_transform(["no i have cows", "i have no cows"]).toarray())
     # add bigrams: now they separate
     print(_vect.vocabulary_)
     return (CountVectorizer,)
@@ -135,8 +140,11 @@ def _(mo):
 @app.cell
 def _(CountVectorizer):
     from scipy.spatial.distance import euclidean
-    _vect = CountVectorizer(ngram_range=(3, 3), analyzer='char_wb')
-    n1, n2, n3, n4 = _vect.fit_transform(['andersen', 'petersen', 'petrov', 'smith']).toarray()
+
+    _vect = CountVectorizer(ngram_range=(3, 3), analyzer="char_wb")
+    n1, n2, n3, n4 = _vect.fit_transform(
+        ["andersen", "petersen", "petrov", "smith"]
+    ).toarray()
     (euclidean(n1, n2), euclidean(n2, n3), euclidean(n3, n4))
     return (euclidean,)
 
@@ -181,13 +189,17 @@ def _():
     import pytesseract
 
     def ocr(url):
-        return pytesseract.image_to_string(Image.open(BytesIO(requests.get(url).content)))
+        return pytesseract.image_to_string(
+            Image.open(BytesIO(requests.get(url).content))
+        )
 
     # a clean logo: reads perfectly
     print(ocr("http://ohscurrent.org/wp-content/uploads/2015/09/domus-01-google.jpg"))
 
     # an apartment floor plan: room labels come out mangled — OCR is not a silver bullet
-    print(ocr("https://habrastorage.org/webt/mj/uv/6o/mjuv6olsh1x9xxe1a6zjy79u1w8.jpeg"))
+    print(
+        ocr("https://habrastorage.org/webt/mj/uv/6o/mjuv6olsh1x9xxe1a6zjy79u1w8.jpeg")
+    )
     return
 
 
@@ -268,9 +280,15 @@ def _(euclidean, np):
         value *= 2 * np.pi / period
         return np.cos(value), np.sin(value)
 
-    print(euclidean(make_harmonic_features(23), make_harmonic_features(1)))   # adjacent hours across midnight
-    print(euclidean(make_harmonic_features(9), make_harmonic_features(11)))   # same gap, mid-day: identical distance
-    print(euclidean(make_harmonic_features(9), make_harmonic_features(21)))   # opposite: 2.0, the maximum
+    print(
+        euclidean(make_harmonic_features(23), make_harmonic_features(1))
+    )  # adjacent hours across midnight
+    print(
+        euclidean(make_harmonic_features(9), make_harmonic_features(11))
+    )  # same gap, mid-day: identical distance
+    print(
+        euclidean(make_harmonic_features(9), make_harmonic_features(21))
+    )  # opposite: 2.0, the maximum
     return
 
 
@@ -324,9 +342,12 @@ def _(mo):
 def _():
     from scipy.stats import beta, lognorm, shapiro
     from sklearn.preprocessing import MinMaxScaler, StandardScaler
+
     _data = beta(1, 10).rvs(1000).reshape(-1, 1)
     print(shapiro(_data))
-    print(shapiro(StandardScaler().fit_transform(_data)))  # not normal  # still not normal — same statistic
+    print(
+        shapiro(StandardScaler().fit_transform(_data))
+    )  # not normal  # still not normal — same statistic
     return MinMaxScaler, StandardScaler, lognorm, shapiro
 
 
@@ -346,11 +367,17 @@ def _(mo):
 
 @app.cell
 def _(MinMaxScaler, StandardScaler, np):
-    _data = np.array([1, 1, 0, -1, 2, 1, 2, 3, -2, 4, 100]).reshape(-1, 1).astype(np.float64)
+    _data = (
+        np.array([1, 1, 0, -1, 2, 1, 2, 3, -2, 4, 100])
+        .reshape(-1, 1)
+        .astype(np.float64)
+    )
     print(StandardScaler().fit_transform(_data).flatten())
     print(((_data - _data.mean()) / _data.std()).flatten())  # the 100 becomes ~3.16
     print(MinMaxScaler().fit_transform(_data).flatten())  # identical: no magic
-    print(((_data - _data.min()) / (_data.max() - _data.min())).flatten())  # the 100 pins to 1.0, everything else ~0
+    print(
+        ((_data - _data.min()) / (_data.max() - _data.min())).flatten()
+    )  # the 100 pins to 1.0, everything else ~0
     return
 
 
@@ -385,13 +412,29 @@ def _(mo):
 @app.cell
 def _(MinMaxScaler, StandardScaler, df, np):
     import statsmodels.api as sm
+
     price = df.price[(df.price <= 20000) & (df.price > 500)]
     # trim the most extreme prices by hand for clarity
     price_log = np.log(price)
-    price_z = StandardScaler().fit_transform(price.values.reshape(-1, 1).astype(np.float64)).flatten()
-    price_mm = MinMaxScaler().fit_transform(price.values.reshape(-1, 1).astype(np.float64)).flatten()
-    for _name, x in [('raw', price), ('z-scored', price_z), ('min-max', price_mm), ('logged', price_log)]:
-        sm.qqplot(np.asarray(x), loc=np.mean(x), scale=np.std(x)).suptitle(f'Q-Q: {_name}')
+    price_z = (
+        StandardScaler()
+        .fit_transform(price.values.reshape(-1, 1).astype(np.float64))
+        .flatten()
+    )
+    price_mm = (
+        MinMaxScaler()
+        .fit_transform(price.values.reshape(-1, 1).astype(np.float64))
+        .flatten()
+    )
+    for _name, x in [
+        ("raw", price),
+        ("z-scored", price_z),
+        ("min-max", price_mm),
+        ("logged", price_log),
+    ]:
+        sm.qqplot(np.asarray(x), loc=np.mean(x), scale=np.std(x)).suptitle(
+            f"Q-Q: {_name}"
+        )
     return
 
 
@@ -411,7 +454,9 @@ def _(mo):
 
 @app.cell
 def _(df):
-    rooms = df["bedrooms"].apply(lambda x: max(x, 0.5))  # studios are 0 bedrooms; 0.5 avoids div-by-zero
+    rooms = df["bedrooms"].apply(
+        lambda x: max(x, 0.5)
+    )  # studios are 0 bedrooms; 0.5 avoids div-by-zero
     df["price_per_bedroom"] = df["price"] / rooms
     df[["price", "bedrooms", "price_per_bedroom"]].head()
     return
@@ -488,11 +533,15 @@ def _(VarianceThreshold, x_data_generated, y_data_generated):
 
     logit = LogisticRegression(solver="lbfgs", random_state=17)
 
-    x_data_kbest = SelectKBest(f_classif, k=5).fit_transform(x_data_generated, y_data_generated)
+    x_data_kbest = SelectKBest(f_classif, k=5).fit_transform(
+        x_data_generated, y_data_generated
+    )
     x_data_varth = VarianceThreshold(0.9).fit_transform(x_data_generated)
 
     def score(x):
-        return cross_val_score(logit, x, y_data_generated, scoring="neg_log_loss", cv=5).mean()
+        return cross_val_score(
+            logit, x, y_data_generated, scoring="neg_log_loss", cv=5
+        ).mean()
 
     print("all features: ", score(x_data_generated))
     print("SelectKBest:  ", score(x_data_kbest))
@@ -524,8 +573,18 @@ def _(cross_val_score, logit, score, x_data_generated, y_data_generated):
     pipe = make_pipeline(SelectFromModel(estimator=rf), logit)
 
     print("LR:            ", score(x_data_generated))
-    print("RF:            ", cross_val_score(rf, x_data_generated, y_data_generated, scoring="neg_log_loss", cv=5).mean())
-    print("LR + selection:", cross_val_score(pipe, x_data_generated, y_data_generated, scoring="neg_log_loss", cv=5).mean())
+    print(
+        "RF:            ",
+        cross_val_score(
+            rf, x_data_generated, y_data_generated, scoring="neg_log_loss", cv=5
+        ).mean(),
+    )
+    print(
+        "LR + selection:",
+        cross_val_score(
+            pipe, x_data_generated, y_data_generated, scoring="neg_log_loss", cv=5
+        ).mean(),
+    )
     return SelectFromModel, make_pipeline, rf
 
 
@@ -550,8 +609,17 @@ def _(
 ):
     pipe1 = make_pipeline(StandardScaler(), SelectFromModel(estimator=rf), logit)
     pipe2 = make_pipeline(StandardScaler(), logit)
-    for _name, est in [('LR + selection: ', pipe1), ('LR:             ', pipe2), ('RF:             ', rf)]:
-        print(_name, cross_val_score(est, x_data_generated, y_data_generated, scoring='neg_log_loss', cv=5).mean())
+    for _name, est in [
+        ("LR + selection: ", pipe1),
+        ("LR:             ", pipe2),
+        ("RF:             ", rf),
+    ]:
+        print(
+            _name,
+            cross_val_score(
+                est, x_data_generated, y_data_generated, scoring="neg_log_loss", cv=5
+            ).mean(),
+        )
     return
 
 

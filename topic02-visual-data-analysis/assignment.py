@@ -69,12 +69,16 @@ def _():
     import warnings
     import numpy as np
     import pandas as pd
-    warnings.filterwarnings('ignore')
+
+    warnings.filterwarnings("ignore")
     import seaborn as sns
+
     sns.set()
     import matplotlib
+
     # Import plotting modules and set up
     import matplotlib.pyplot as plt
+
     # '%matplotlib inline' command supported automatically in marimo
     # magic command not supported in marimo; please file an issue to add support
     # %config InlineBackend.figure_format = 'retina'
@@ -115,19 +119,48 @@ def _(DATA_PATH, pd):
 
 @app.cell
 def _(df, pd, plt, sns):
-    _df_uniques = pd.melt(frame=df, value_vars=['gender', 'cholesterol', 'gluc', 'smoke', 'alco', 'active', 'cardio'])
-    _df_uniques = pd.DataFrame(_df_uniques.groupby(['variable', 'value'])['value'].count()).sort_index(level=[0, 1]).rename(columns={'value': 'count'}).reset_index()
-    sns.catplot(x='variable', y='count', hue='value', data=_df_uniques, kind='bar')
-    plt.xticks(rotation='vertical')
+    _df_uniques = pd.melt(
+        frame=df,
+        value_vars=[
+            "gender",
+            "cholesterol",
+            "gluc",
+            "smoke",
+            "alco",
+            "active",
+            "cardio",
+        ],
+    )
+    _df_uniques = (
+        pd.DataFrame(_df_uniques.groupby(["variable", "value"])["value"].count())
+        .sort_index(level=[0, 1])
+        .rename(columns={"value": "count"})
+        .reset_index()
+    )
+    sns.catplot(x="variable", y="count", hue="value", data=_df_uniques, kind="bar")
+    plt.xticks(rotation="vertical")
     return
 
 
 @app.cell
 def _(df, pd, plt, sns):
-    _df_uniques = pd.melt(frame=df, value_vars=['gender', 'cholesterol', 'gluc', 'smoke', 'alco', 'active'], id_vars=['cardio'])
-    _df_uniques = pd.DataFrame(_df_uniques.groupby(['variable', 'value', 'cardio'])['value'].count()).sort_index(level=[0, 1]).rename(columns={'value': 'count'}).reset_index()
-    sns.catplot(x='variable', y='count', hue='value', col='cardio', data=_df_uniques, kind='bar')
-    plt.xticks(rotation='vertical')
+    _df_uniques = pd.melt(
+        frame=df,
+        value_vars=["gender", "cholesterol", "gluc", "smoke", "alco", "active"],
+        id_vars=["cardio"],
+    )
+    _df_uniques = (
+        pd.DataFrame(
+            _df_uniques.groupby(["variable", "value", "cardio"])["value"].count()
+        )
+        .sort_index(level=[0, 1])
+        .rename(columns={"value": "count"})
+        .reset_index()
+    )
+    sns.catplot(
+        x="variable", y="count", hue="value", col="cardio", data=_df_uniques, kind="bar"
+    )
+    plt.xticks(rotation="vertical")
     return
 
 

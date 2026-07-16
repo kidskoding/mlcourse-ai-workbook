@@ -95,16 +95,25 @@ def _(
 ):
     alphas = np.logspace(-4, 1, 20)
 
-    sgd_pipe = Pipeline([
-        ("scaler", StandardScaler()),
-        ("poly", PolynomialFeatures(degree=2)),
-        ("sgd_model", SGDClassifier(loss="hinge", n_jobs=-1, random_state=17, max_iter=5)),
-    ])
+    sgd_pipe = Pipeline(
+        [
+            ("scaler", StandardScaler()),
+            ("poly", PolynomialFeatures(degree=2)),
+            (
+                "sgd_model",
+                SGDClassifier(loss="hinge", n_jobs=-1, random_state=17, max_iter=5),
+            ),
+        ]
+    )
 
     val_train, val_test = validation_curve(
-        estimator=sgd_pipe, X=X, y=y,
-        param_name="sgd_model__alpha", param_range=alphas,
-        cv=5, scoring="roc_auc",
+        estimator=sgd_pipe,
+        X=X,
+        y=y,
+        param_name="sgd_model__alpha",
+        param_range=alphas,
+        cv=5,
+        scoring="roc_auc",
     )
     return alphas, sgd_pipe, val_test, val_train
 
@@ -126,8 +135,14 @@ def _(alphas, plt, val_test, val_train):
     def plot_with_err(x, data, **kwargs):
         mu, std = data.mean(1), data.std(1)
         lines = plt.plot(x, mu, "-", **kwargs)
-        plt.fill_between(x, mu - std, mu + std, edgecolor="none",
-                         facecolor=lines[0].get_color(), alpha=0.2)
+        plt.fill_between(
+            x,
+            mu - std,
+            mu + std,
+            edgecolor="none",
+            facecolor=lines[0].get_color(),
+            alpha=0.2,
+        )
 
     plot_with_err(alphas, val_train, label="training scores")
     plot_with_err(alphas, val_test, label="validation scores")
@@ -135,7 +150,7 @@ def _(alphas, plt, val_test, val_train):
     plt.xlabel(r"$\alpha$")
     plt.ylabel("ROC AUC")
     plt.legend()
-    plt.grid(True);
+    plt.grid(True)
     return (plot_with_err,)
 
 
@@ -184,12 +199,22 @@ def _(
 ):
     def plot_learning_curve(degree, alpha):
         train_sizes = np.linspace(0.05, 1, 20)
-        pipe = Pipeline([
-            ("scaler", StandardScaler()),
-            ("poly", PolynomialFeatures(degree=degree)),
-            ("sgd_model", SGDClassifier(loss="hinge", n_jobs=-1, random_state=17,
-                                        alpha=alpha, max_iter=5)),
-        ])
+        pipe = Pipeline(
+            [
+                ("scaler", StandardScaler()),
+                ("poly", PolynomialFeatures(degree=degree)),
+                (
+                    "sgd_model",
+                    SGDClassifier(
+                        loss="hinge",
+                        n_jobs=-1,
+                        random_state=17,
+                        alpha=alpha,
+                        max_iter=5,
+                    ),
+                ),
+            ]
+        )
         N_train, val_train, val_test = learning_curve(
             pipe, X, y, train_sizes=train_sizes, cv=5, scoring="roc_auc"
         )
@@ -198,7 +223,7 @@ def _(
         plt.xlabel("Training Set Size")
         plt.ylabel("AUC")
         plt.legend()
-        plt.grid(True);
+        plt.grid(True)
 
     return (plot_learning_curve,)
 
@@ -247,11 +272,19 @@ def _(X, np, sgd_pipe, y):
         for train_idx, test_idx in StratifiedKFold(5).split(X, y):
             pipe = clone(sgd_pipe).set_params(sgd_model__alpha=alpha)
             pipe.fit(X[train_idx[:_cap]], y[train_idx[:_cap]])
-            scores.append(roc_auc_score(y[test_idx], pipe.decision_function(X[test_idx])))
+            scores.append(
+                roc_auc_score(y[test_idx], pipe.decision_function(X[test_idx]))
+            )
         return np.array(scores)
-    for _cap, _label in [(2667, '2667 rows (validation_curve)'), (2666, '2666 rows (learning_curve)')]:
+
+    for _cap, _label in [
+        (2667, "2667 rows (validation_curve)"),
+        (2666, "2666 rows (learning_curve)"),
+    ]:
         _s = folds_at(10, _cap)
-        print(f'{_label:30s} folds={np.round(_s, 3)}  mean={_s.mean():.3f}  std={_s.std():.3f}')
+        print(
+            f"{_label:30s} folds={np.round(_s, 3)}  mean={_s.mean():.3f}  std={_s.std():.3f}"
+        )
     return (folds_at,)
 
 
@@ -297,9 +330,14 @@ def _(plot_learning_curve):
 
 @app.cell
 def _(folds_at, np):
-    for _cap, _label in [(2667, '2667 rows (validation_curve)'), (2666, '2666 rows (learning_curve)')]:
+    for _cap, _label in [
+        (2667, "2667 rows (validation_curve)"),
+        (2666, "2666 rows (learning_curve)"),
+    ]:
         _s = folds_at(0.0001, _cap)
-        print(f'{_label:30s} folds={np.round(_s, 3)}  mean={_s.mean():.3f}  std={_s.std():.3f}')
+        print(
+            f"{_label:30s} folds={np.round(_s, 3)}  mean={_s.mean():.3f}  std={_s.std():.3f}"
+        )
     return
 
 

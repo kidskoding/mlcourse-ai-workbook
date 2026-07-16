@@ -113,10 +113,8 @@ def _():
     import numpy as np
     import matplotlib.pyplot as plt
 
-
     def sigma(z):
         return 1 / (1 + np.exp(-z))
-
 
     z = np.linspace(-8, 8, 200)
     plt.figure(figsize=(6, 3))
@@ -239,7 +237,9 @@ def _(np, plt):
 
     plt.figure(figsize=(6, 3.5))
     plt.plot(M, (M < 0).astype(int), label="zero-one loss  $[M<0]$", lw=2)
-    plt.plot(M, np.log2(1 + np.exp(-M)), label="logistic loss  $\\log_2(1+e^{-M})$", lw=2)
+    plt.plot(
+        M, np.log2(1 + np.exp(-M)), label="logistic loss  $\\log_2(1+e^{-M})$", lw=2
+    )
     plt.xlabel("margin  $M = y \\cdot w^Tx$")
     plt.ylabel("loss")
     plt.legend()

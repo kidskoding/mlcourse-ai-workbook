@@ -24,6 +24,7 @@ def _(mo):
 @app.cell
 def _():
     import warnings
+
     warnings.filterwarnings("ignore")
 
     import numpy as np
@@ -31,8 +32,7 @@ def _():
     from sklearn.ensemble import RandomForestRegressor
     from sklearn.linear_model import Lasso, LassoCV, LinearRegression
     from sklearn.metrics import mean_squared_error
-    from sklearn.model_selection import (GridSearchCV, cross_val_score,
-                                         train_test_split)
+    from sklearn.model_selection import GridSearchCV, cross_val_score, train_test_split
     from sklearn.preprocessing import StandardScaler
 
     return (pd,)
@@ -322,7 +322,7 @@ def _(mo):
 @app.cell
 def _():
     # TODO: answer the question by writing your Python code here; be sure to print out your final answer in a properly formatted way
-    # rf_importance = pd.DataFrame  
+    # rf_importance = pd.DataFrame
     # rf_importance.sort_values
     return
 
