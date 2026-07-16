@@ -6,15 +6,13 @@ workbook for [mlcourse.ai](https://mlcourse.ai/book/index.html) - a free, open, 
 
 Notebooks are [marimo](https://marimo.io) `.py` files.
 
-Install marimo:
+Install marimo via `uv` (needs [uv](https://docs.astral.sh/uv/)) (or `pip`):
 
 ```sh
-pip install marimo
-# or
 uv tool install marimo
 ```
 
-Install the workbook's dependencies and activate the environment (needs [uv](https://docs.astral.sh/uv/)):
+Install the workbook's dependencies and activate the environment:
 
 ```sh
 uv sync
