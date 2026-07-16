@@ -4,31 +4,20 @@ workbook for [mlcourse.ai](https://mlcourse.ai/book/index.html) - a free, open, 
 
 ## Running locally
 
-Notebooks are [marimo](https://marimo.io) `.py` files.
-
-Install marimo via `uv` (needs [uv](https://docs.astral.sh/uv/)) (or `pip`):
-
-```sh
-uv tool install marimo
-```
-
-Install the workbook's dependencies and activate the environment:
+Notebooks are [marimo](https://marimo.io) `.py` files. The only prerequisite is [uv](https://docs.astral.sh/uv/) — marimo and all dependencies come from the lockfile.
 
 ```sh
 uv sync
-source .venv/bin/activate
+uv run marimo edit --watch .
 ```
 
-Then open any notebook (browser tab; `--watch` picks up edits made outside marimo):
+This opens a browser tab listing every notebook; pick one to work on. `--watch` makes marimo pick up edits made outside the editor (e.g. by an agent or in Zed).
+
+To jump straight into one notebook, or run one end-to-end as a plain script:
 
 ```sh
-marimo edit --watch topic01-exploratory-data-analysis-pandas/notes.py
-```
-
-Or run one end-to-end as a plain script:
-
-```sh
-python topic01-exploratory-data-analysis-pandas/notes.py
+uv run marimo edit --watch topic01-exploratory-data-analysis-pandas/notes.py
+uv run python topic01-exploratory-data-analysis-pandas/notes.py
 ```
 
 Each topic directory has `notes*.py` (study notes; multi-part topics have one file per course page) and an `assignment.py` with `# TODO` cells to fill in.
