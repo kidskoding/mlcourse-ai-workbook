@@ -1,0 +1,491 @@
+import marimo
+
+__generated_with = "0.23.14"
+app = marimo.App()
+
+
+@app.cell
+def _():
+    import marimo as mo
+
+    return (mo,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    # Topic 5 — Part 2: Random Forest
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## The algorithm: bagging + a random subspace at every split
+
+    Part 1 showed that bagging averages away variance, and that decision trees are the ideal base learner for it — deep trees are low-bias and absurdly high-variance, exactly what averaging fixes. But bagging alone leaves money on the table: every tree sees all $d$ features, so if one feature is dominant, every tree splits on it first and the trees end up looking alike. Averaging correlated things barely reduces variance.
+
+    Breiman's fix (with Cutler, extending Tin Kam Ho's idea) is the **random subspace method**: at *each split*, sample $m$ of the $d$ features and search for the best split only among those. Different trees are forced down different paths, so they decorrelate.
+
+    Build $N$ trees; for each $k = 1, \dots, N$:
+
+    1. Draw a bootstrap sample $X_k$ from the training data.
+    2. Grow tree $b_k$ on $X_k$ — at every node, pick $m$ random features, split on the best one among them.
+    3. Grow deep: stop at a leaf size of $n_{min}$ (or a depth cap). No pruning.
+
+    Predict by averaging: $a(x) = \frac{1}{N}\sum_{k=1}^{N} b_k(x)$ — majority vote for classification, mean for regression.
+
+    Defaults worth memorizing:
+
+    | | $m$ (`max_features`) | $n_{min}$ (`min_samples_leaf`) |
+    |---|---|---|
+    | classification | $\sqrt{d}$ | 1 |
+    | regression | $d/3$ | 5 |
+
+    **One-line mental model:** random forest = bagged trees + feature subsampling at each split.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Setup
+    """)
+    return
+
+
+@app.cell
+def _():
+    import warnings
+    warnings.filterwarnings("ignore")
+
+    import numpy as np
+    import pandas as pd
+    from matplotlib import pyplot as plt
+
+    from sklearn.datasets import make_circles
+    from sklearn.ensemble import (BaggingClassifier, BaggingRegressor,
+                                  RandomForestClassifier, RandomForestRegressor)
+    from sklearn.model_selection import (GridSearchCV, StratifiedKFold,
+                                         cross_val_score, train_test_split)
+    from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+
+    plt.style.use("ggplot")
+    plt.rcParams["figure.figsize"] = 10, 6
+    # magic command not supported in marimo; please file an issue to add support
+    # %config InlineBackend.figure_format = 'retina'
+    return (
+        BaggingClassifier,
+        BaggingRegressor,
+        DecisionTreeClassifier,
+        DecisionTreeRegressor,
+        GridSearchCV,
+        RandomForestClassifier,
+        RandomForestRegressor,
+        StratifiedKFold,
+        cross_val_score,
+        make_circles,
+        np,
+        pd,
+        plt,
+        train_test_split,
+    )
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Tree vs. bagging vs. forest, side by side
+
+    The point of this comparison is calibration, not surprise: on a smooth 1-D regression target, a lone tree produces a jagged step function that chases noise. Bagging smooths it out. A forest of only 10 trees lands at roughly bagging's MSE — the subspace trick can't help here, because with one feature $m = d = 1$ and the forest *is* bagging. Its payoff shows up when $d$ is large.
+    """)
+    return
+
+
+@app.cell
+def _(BaggingRegressor, DecisionTreeRegressor, RandomForestRegressor, np, plt):
+    def f(x):
+        x = x.ravel()
+        return np.exp(-x ** 2) + 1.5 * np.exp(-(x - 2) ** 2)
+
+    def generate(n_samples, noise=0.1):
+        X = np.sort(np.random.rand(n_samples) * 10 - 5).ravel()
+        y = f(X) + np.random.normal(0.0, noise, n_samples)
+        return (X.reshape((n_samples, 1)), y)
+    np.random.seed(42)
+    X_train, y_train = generate(150)
+    X_test, y_test = generate(1000)
+    models = [('Decision tree', DecisionTreeRegressor(), 'g'), ('Bagging of trees', BaggingRegressor(DecisionTreeRegressor()), 'y'), ('Random forest', RandomForestRegressor(n_estimators=10), 'r')]
+    for _name, model, color in models:
+        pred = model.fit(X_train, y_train).predict(X_test)
+        plt.figure(figsize=(10, 4))
+        plt.plot(X_test, f(X_test), 'b')
+        plt.scatter(X_train, y_train, c='b', s=20)
+        plt.plot(X_test, pred, color, lw=2)
+        plt.xlim([-5, 5])
+        plt.title('%s, MSE = %.2f' % (_name, np.mean((y_test - pred) ** 2)))
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    The same story is easier to read as a decision boundary. On the two-circles dataset a single tree carves out a boundary full of acute angles and thin slivers — every one of those spikes is the tree memorizing a noisy point. The ensembles produce a smooth, roughly circular boundary that will actually generalize.
+
+    **The tell:** jagged, high-frequency decision boundaries = overfitting. Averaging is what smooths them.
+    """)
+    return
+
+
+@app.cell
+def _(
+    BaggingClassifier,
+    DecisionTreeClassifier,
+    RandomForestClassifier,
+    make_circles,
+    np,
+    plt,
+    train_test_split,
+):
+    X, y = make_circles(n_samples=500, factor=0.1, noise=0.35, random_state=42)
+    X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.2, random_state=42)
+    x_range = np.linspace(X.min(), X.max(), 100)
+    xx1, xx2 = np.meshgrid(x_range, x_range)
+    grid = np.c_[xx1.ravel(), xx2.ravel()]
+    clfs = [('Decision tree', DecisionTreeClassifier(random_state=42)), ('Bagging (decision trees)', BaggingClassifier(DecisionTreeClassifier(), n_estimators=300, random_state=42)), ('Random forest', RandomForestClassifier(n_estimators=300, random_state=42))]
+    for _name, clf in clfs:
+        clf.fit(X_tr, y_tr)
+        y_hat = clf.predict(grid).reshape(xx1.shape)
+        plt.figure(figsize=(6, 5))
+        plt.contourf(xx1, xx2, y_hat, alpha=0.2)
+        plt.scatter(X[:, 0], X[:, 1], c=y, cmap='viridis', alpha=0.7)
+        plt.title(_name)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## The five parameters that actually matter
+
+    `RandomForestClassifier` / `RandomForestRegressor` expose a long parameter list, but almost all of it is either plumbing (`n_jobs`, `random_state`, `verbose`, `warm_start`, `oob_score`) or a knob you will never touch (`min_weight_fraction_leaf`, `max_leaf_nodes`). The short list:
+
+    - **`n_estimators`** — number of trees. More is never worse for accuracy, only slower. Not a regularizer.
+    - **`criterion`** — split quality. `gini`/`entropy` for classification, `squared_error`/`absolute_error` for regression. Rarely matters.
+    - **`max_features`** — the $m$ above. The one parameter unique to forests, and the one that controls decorrelation.
+    - **`min_samples_leaf`** — minimum samples in a leaf. Regularizer.
+    - **`max_depth`** — depth cap. Regularizer.
+
+    Classification-only: `class_weight` (`"balanced"` reweights inversely to class frequency; `"balanced_subsample"` recomputes that per bootstrap sample). Regression has no equivalent.
+
+    **Rule of thumb:** set `n_estimators` as high as your patience allows, then tune the other four. `n_estimators` buys you a plateau, not a peak.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Practice: telecom churn
+
+    Same churn dataset as Topic 1, numeric features only, accuracy scored with stratified 5-fold CV. Out of the box, with no tuning at all, the forest lands around 92% — well past the 85.5% "always predict loyal" baseline from Topic 1. That out-of-the-box number is the whole reason random forests are the default first model on tabular data.
+    """)
+    return
+
+
+@app.cell
+def _(RandomForestClassifier, StratifiedKFold, cross_val_score, np, pd):
+    DATA_PATH = 'https://raw.githubusercontent.com/Yorko/mlcourse.ai/main/data/'
+    df = pd.read_csv(DATA_PATH + 'telecom_churn.csv')
+    cols = [c for c in df.columns if df[c].dtype in ('float64', 'int64')]
+    X_1, y_1 = (df[cols].copy(), np.asarray(df['Churn'], dtype='int8'))
+    skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+    _rfc = RandomForestClassifier(random_state=42, n_jobs=-1)
+    results = cross_val_score(_rfc, X_1, y_1, cv=skf)
+    print('CV accuracy score: {:.2f}%'.format(results.mean() * 100))
+    return X_1, skf, y_1
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Reading the validation curves
+
+    Rather than repeat the same nested loop four times, one helper sweeps a parameter and plots train vs. CV accuracy with $\pm1\sigma$ and $\pm2\sigma$ bands. The gap between the blue (train) and red (CV) curves *is* the overfitting — read the gap, not just the peak.
+    """)
+    return
+
+
+@app.cell
+def _(RandomForestClassifier, X_1, np, plt, skf, y_1):
+    def validation_curve(param, grid, **fixed):
+        train_acc, test_acc = ([], [])
+        for value in grid:
+            _rfc = RandomForestClassifier(random_state=42, n_jobs=-1, **{param: value}, **fixed)
+            tr, te = ([], [])
+            for train_index, test_index in skf.split(X_1, y_1):
+                _rfc.fit(X_1.iloc[train_index], y_1[train_index])
+                tr.append(_rfc.score(X_1.iloc[train_index], y_1[train_index]))
+                te.append(_rfc.score(X_1.iloc[test_index], y_1[test_index]))
+            train_acc.append(tr)
+            test_acc.append(te)
+        train_acc, test_acc = (np.asarray(train_acc), np.asarray(test_acc))
+        mean, std = (test_acc.mean(axis=1), test_acc.std(axis=1))
+        print('Best CV accuracy is {:.2f}% with {} {}'.format(mean.max() * 100, grid[np.argmax(mean)], param))
+        fig, ax = plt.subplots(figsize=(8, 4))
+        ax.plot(grid, train_acc.mean(axis=1), alpha=0.5, color='blue', label='train')
+        ax.plot(grid, mean, alpha=0.5, color='red', label='cv')
+        ax.fill_between(grid, mean - std, mean + std, color='#888888', alpha=0.4)
+        ax.fill_between(grid, mean - 2 * std, mean + 2 * std, color='#888888', alpha=0.2)
+        ax.legend(loc='best')
+        ax.set_ylim([0.88, 1.02])
+        ax.set_ylabel('Accuracy')
+        ax.set_xlabel(param)
+        return (train_acc, test_acc)
+
+    return (validation_curve,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    **`n_estimators` — the plateau.** Accuracy climbs fast and then flattens to an asymptote; past ~50–75 trees you are paying CPU for nothing. Note the train curve pinned at 100%: the forest is memorizing the training set, and more trees will never fix that, because `n_estimators` is not a regularizer — it reduces the variance of the *average*, not the capacity of each tree.
+    """)
+    return
+
+
+@app.cell
+def _(validation_curve):
+    _ = validation_curve("n_estimators", [5, 10, 15, 20, 30, 50, 75, 100])
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    **`max_depth` — the first real regularizer.** Capping depth limits each tree's capacity, and the train curve responds exactly as advertised: depth 3 keeps train accuracy at ~88.6% with a gap of half a point, and the gap widens monotonically as the cap lifts until train is pinned back at 100% by depth 20. But read the CV curve honestly — it climbs out of underfitting (depth 3-5), reaches ~92.4% by depth 13, and then just wobbles inside about three tenths of a percent all the way out to an effectively-uncapped tree, where the reported peak of 92.50% at depth 22 happens to land. On this data `max_depth` buys you a smaller gap, not a better score: the depths that actually close the gap cost accuracy, and the depths that score best have no gap-closing left in them. What the flat right half does show is the forest's famous forgiveness — too deep is not catastrophic the way it is for a lone tree.
+    """)
+    return
+
+
+@app.cell
+def _(validation_curve):
+    _ = validation_curve("max_depth", [3, 5, 7, 9, 11, 13, 15, 17, 20, 22, 24],
+                         n_estimators=100)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    **`min_samples_leaf` — regularization from the bottom up.** Same effect from the other end: forbid tiny leaves and a tree cannot carve out one leaf per noisy point. Here CV accuracy does *not* improve — but the train/CV gap shrinks from ~8% to ~2% at the same ~92% accuracy. That is still a win: same score, less variance, is the model that survives contact with new data.
+
+    **Trap:** judging a regularizer only by peak CV accuracy. Shrinking the gap at equal accuracy is the point.
+    """)
+    return
+
+
+@app.cell
+def _(validation_curve):
+    _ = validation_curve("min_samples_leaf", [1, 3, 5, 7, 9, 11, 13, 15, 17, 20, 22, 24],
+                         n_estimators=100)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    **`max_features` — the decorrelation dial.** Small $m$ = maximally decorrelated but individually weaker trees; $m = d$ = bagging, strong but correlated trees. The optimum sits somewhere in between and is worth searching — but on this data the search is nearly a formality. Only $m = 2$ is clearly bad (91.3%); from $m = 4$ to $m = 16$ every value lands within a quarter of a point of every other, and the printed winner (92.41% at 14 features out of 16) is inside the noise of the $\sqrt{d} \approx 4$ default. Take the lesson, not the argmax: this curve is flat, so read it as *don't starve the trees*, and let the joint grid search below pick the actual value.
+    """)
+    return
+
+
+@app.cell
+def _(validation_curve):
+    _ = validation_curve("max_features", [2, 4, 6, 8, 10, 12, 14, 16], n_estimators=100)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Grid search over the three that interact
+
+    Sweeping one parameter at a time is for *understanding* the curves; the parameters interact, so tune them jointly. The gain over the untuned default comes out under one percentage point — which is exactly the honest advertised range for random forest tuning (0.5–3%). If you need more than that, you need a different model or better features, not a bigger grid.
+    """)
+    return
+
+
+@app.cell
+def _(GridSearchCV, RandomForestClassifier, X_1, skf, y_1):
+    parameters = {'max_features': [4, 7, 10, 13], 'min_samples_leaf': [1, 3, 5, 7], 'max_depth': [5, 10, 15, 20]}
+    _rfc = RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1)
+    gcv = GridSearchCV(_rfc, parameters, n_jobs=-1, cv=skf, verbose=1)
+    gcv.fit(X_1, y_1)
+    (gcv.best_params_, gcv.best_score_)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Why it works: variance, decorrelation, and bias
+
+    **Variance.** The variance of the forest's prediction at a point $x$ is
+
+    $$\mathrm{Var}\, f(x) = \rho(x)\,\sigma^2(x)$$
+
+    where $\sigma^2(x) = \mathrm{Var}[T(x, \Theta(Z))]$ is the variance of a single random tree, and
+
+    $$\rho(x) = \mathrm{Corr}[T(x, \Theta_1(Z)), T(x, \Theta_2(Z))]$$
+
+    is the correlation between two independently drawn trees evaluated at $x$. The whole algorithm lives in that $\rho$: drive the correlation down and the ensemble variance falls with it, no matter how wild the individual trees are. That is what feature subsampling buys — bootstrapping alone can only push $\rho$ so low.
+
+    **Subtlety worth internalizing:** $\rho(x)$ is *not* the average pairwise correlation you'd get by treating your $N$ fitted trees as vectors and correlating them. It is a theoretical correlation over the sampling distribution of the training set $Z$ *and* the randomization $\Theta$ — the dependence on $x$ is the giveaway. Conditional on the training set $Z$, two trees are i.i.d. — their randomizations $\Theta_1, \Theta_2$ are drawn independently — so their conditional covariance is 0. What makes $\rho(x)$ nonzero is the shared $Z$: every tree in a given forest is fit to the same data, and averaging over the sampling distribution of $Z$ is what leaves the correlation the algorithm has to fight.
+
+    Also note: $m$ barely affects a *single* tree's variance, but it is decisive for the ensemble's.
+
+    **Bias.** The forest's bias equals a single randomized tree's bias:
+
+    $$\text{Bias} = \mu(x) - \mathbb{E}_Z f_{rf}(x) = \mu(x) - \mathbb{E}_Z \mathbb{E}_{\Theta|Z}\, T(x, \Theta(Z))$$
+
+    and in absolute value it is typically *worse* than an unpruned single tree's, because randomization and the restricted feature set handicap each tree. So: **all of the accuracy gain from bagging and random forests is variance reduction. None of it is bias reduction.** If your model is underfitting, a forest will not save you.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Extremely randomized trees
+
+    Extra Trees push randomization one step further: on top of a random feature subset, the split *threshold* is drawn at random for each candidate feature, and the best of those random thresholds wins — no search for the optimal cut point. Cheaper to fit, lower variance, slightly higher bias.
+
+    sklearn ships `ExtraTreesClassifier` / `ExtraTreesRegressor`.
+
+    **When to reach for it:** you have badly overfit with a random forest or gradient boosting. It's a variance-for-bias trade, so it's the wrong move if you are already underfitting.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## A random forest is a kNN in disguise
+
+    A forest predicts from labels of training examples that look like $x$ — where "look like" means "keep landing in the same leaf". That is the kNN idea with a learned, non-uniform metric. Formally, for regression with squared loss, let $T_n(x)$ be the leaf of the $n$-th tree that $x$ falls into. A single tree predicts the average label of the training points sharing that leaf:
+
+    $$b_n(x) = \sum_{i=1}^{l} w_n(x, x_i)\, y_i, \qquad w_n(x, x_i) = \frac{[T_n(x) = T_n(x_i)]}{\sum_{j=1}^{l} [T_n(x) = T_n(x_j)]}$$
+
+    and the ensemble is
+
+    $$a_n(x) = \frac{1}{N}\sum_{n=1}^{N}\sum_{i=1}^{l} w_n(x, x_i)\, y_i = \sum_{i=1}^{l}\Big(\frac{1}{N}\sum_{n=1}^{N} w_n(x, x_i)\Big) y_i$$
+
+    — a **weighted sum over every training label**, with weights learned by the trees. Unlike kNN's fixed distance metric, the neighborhood is shaped by the data.
+
+    **Practical fallout:** the leaf id $T_n(x)$ is a useful feature in its own right. Train a small forest or boosting model, append the categorical features $T_1(x), \dots, T_N(x)$ to your dataset, and feed them to a second model. They encode a nonlinear partition of the space, i.e. a learned similarity between examples.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## RandomTreesEmbedding: forests without labels
+
+    `RandomTreesEmbedding` runs the same machinery unsupervised. It fits extremely randomized trees, then one-hot encodes which leaf each point landed in — a wide, sparse binary vector (1 for the leaf you hit, 0 elsewhere). The number of trees and their depth control dimensionality and sparsity.
+
+    Why it means anything: nearby points tend to share leaves, so the encoding is an implicit nonparametric density estimate. This is the hook that lets forests do clustering, outlier detection, and visualization on unlabeled data.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Pros and cons
+
+    **Pros**
+
+    - High accuracy — beats linear models on most tabular problems, competitive with boosting.
+    - Works out of the box; tuning buys only 0.5–3%.
+    - Insensitive to feature scaling and any monotonic transform (splits only care about order).
+    - Robust to outliers thanks to bootstrap sampling; handles continuous and discrete features alike.
+    - Rarely overfits catastrophically — the `n_estimators` curve plateaus rather than degrading.
+    - Ships feature importances, class weighting, and pairwise proximities (usable for clustering, outlier detection, unsupervised work).
+    - Embarrassingly parallel (`n_jobs=-1`) and scales well; tolerates missing data.
+
+    **Cons**
+
+    - Much harder to interpret than one tree; no p-values for feature significance.
+    - Loses to linear models on sparse high-dimensional data (text, bag-of-words).
+    - **Cannot extrapolate** — predictions are averages of training labels, so they're bounded by the training range. Feed it a trend and it flatlines outside the data. (Flip side: outliers can't produce absurd predictions.)
+    - Biased toward categorical features with many levels — more levels = more split opportunities = spurious apparent gain.
+    - **Correlation bias**: with groups of correlated features, it tends to favor the smaller groups.
+    - Big models, lots of RAM.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Takeaways
+
+    - **Random forest = bagging + a random feature subset at every split.** The second half is what separates it from plain bagging; it decorrelates the trees so averaging actually helps.
+    - **The math is $\mathrm{Var}\, f(x) = \rho(x)\sigma^2(x)$.** All the effort goes into shrinking $\rho$.
+    - **Forests reduce variance, never bias.** The forest's bias equals a single randomized tree's — usually a bit worse than an unpruned tree's. An underfitting model won't be rescued by an ensemble.
+    - **`n_estimators` is not a regularizer.** It buys a plateau. Set it as high as you can afford and tune `max_depth`, `min_samples_leaf`, and `max_features` for actual regularization.
+    - **`max_features` is the forest-specific dial.** $\sqrt{d}$ (classification) and $d/3$ (regression) are starting guesses; search around them.
+    - **Judge regularizers by the train/CV gap, not just peak CV.** Same accuracy with a smaller gap is strictly better.
+    - **Tuning pays 0.5–3%.** If you need more, change the model or the features.
+    - **It cannot extrapolate.** Never use a forest for a trending time series or any target outside the observed range.
+    - **Leaf ids are features.** $T_n(x)$ encodes learned similarity; `RandomTreesEmbedding` turns that into an unsupervised sparse embedding.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Summary
+
+    A random forest is bagged, unpruned decision trees with one extra twist — at each split only a random subset of $m$ features is considered — and that twist is the whole point: it decorrelates the trees so that averaging them collapses the ensemble variance, which the identity $\mathrm{Var}\, f(x) = \rho(x)\sigma^2(x)$ makes explicit. Bias is untouched (it equals a single randomized tree's, usually slightly worse than an unpruned tree's), so every ounce of the accuracy gain is variance reduction. In practice this makes forests the default first model on tabular data: ~92% CV accuracy on the churn dataset with zero tuning against an 85.5% naive baseline, with `n_estimators` bought up to its plateau and `max_depth` / `min_samples_leaf` / `max_features` grid-searched for a final 0.5–3%. The right way to read the validation curves is by the train/CV gap, not the peak — `min_samples_leaf` closes an 8% gap to 2% at unchanged accuracy, and that is the win. Push randomization further with Extra Trees when overfitting; view the forest as a learned-metric kNN (predictions are a weighted sum over training labels) to see why leaf ids make good features and why the model can never extrapolate beyond the training range.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Glossary / Terms
+
+    - **random forest** = bagged unpruned decision trees, each split restricted to a random feature subset
+    - **random subspace method** = drawing a random subset of features to restrict a model (or a split) to
+    - **decorrelation** = making base learners disagree so that averaging reduces variance
+    - **rho(x)** = theoretical correlation between two random trees evaluated at $x$; one factor of $\mathrm{Var}\, f(x) = \rho(x)\sigma^2(x)$
+    - **sigma^2(x)** = variance of a single random tree's prediction at $x$; the other factor of that identity
+    - **bias** = systematic error; unchanged by forests, equal to a single randomized tree's
+    - **variance** = sensitivity to the training sample; the only thing forests reduce
+    - **`n_estimators`** = number of trees; more is slower, never worse, not a regularizer
+    - **`max_features`** = the $m$ features sampled per split; $\sqrt{d}$ classification, $d/3$ regression
+    - **`max_depth`** = depth cap on each tree; a regularizer
+    - **`min_samples_leaf`** = minimum samples per leaf ($n_{min}$); a regularizer; 1 classification, 5 regression
+    - **`criterion`** = split-quality function (gini/entropy, squared_error/absolute_error)
+    - **`class_weight`** = per-class weights; `"balanced"` uses inverse class frequency, `"balanced_subsample"` recomputes it per bootstrap sample
+    - **`oob_score`** = score estimated on each tree's out-of-bag samples, no held-out set needed
+    - **validation curve** = train and CV score plotted against one parameter's value
+        - **train/CV gap** = the overfitting, read directly off the curve
+    - **Extra Trees** = forest variant that also picks split thresholds at random; less variance, more bias
+    - **`RandomTreesEmbedding`** = unsupervised one-hot encoding of leaf ids into a sparse high-dimensional space
+    - **leaf id T_n(x)** = which leaf of tree $n$ an example lands in; usable as a categorical feature
+    - **extrapolation** = predicting outside the training range; random forests cannot do it
+    - **correlation bias** = a forest's tendency to favor smaller groups of correlated features
+    """)
+    return
+
+
+if __name__ == "__main__":
+    app.run()
