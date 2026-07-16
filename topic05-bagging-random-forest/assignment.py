@@ -263,7 +263,7 @@ def _(LogisticRegression):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    Let's try to find the best regularization coefficient, which is the coefficient `C` for logistic regression. Then, we will have an optimal model that is not overfit and is a good predictor of the target variable.
+    Let's try to find the best regularization coefficient, which is the coefficient `C` for logistic regression.
     """)
     return
 
@@ -291,8 +291,6 @@ def _(StratifiedKFold):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    One of the important metrics of model quality is the *Area Under the Curve (AUC)*. *ROC AUC* varies from 0 to 1. The closer ROC AUC is to 1, the better the quality of the classification model.
-
     **Question 3.** Perform a *Grid Search* with the scoring metric "roc_auc" for the parameter `C`. Which value of the parameter `C` is optimal?
 
     1. 0.0001

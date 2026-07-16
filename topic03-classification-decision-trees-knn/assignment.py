@@ -737,8 +737,6 @@ def _(mo):
 
     ### 3.3 (Optional) Random forest without parameter tuning
 
-    Let's take a sneak peek of upcoming lectures and try to use a random forest for our task. For now, you can imagine a random forest as a bunch of decision trees, trained on slightly different subsets of the training data.
-
     Train a random forest **(RandomForestClassifier)**. Set the number of trees to 100 and use **random_state = 17**.
     """)
     return
